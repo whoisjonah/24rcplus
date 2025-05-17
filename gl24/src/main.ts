@@ -1,4 +1,5 @@
 import { Application, Assets, FederatedPointerEvent, Text, Graphics, NOOP, loadJson } from "pixi.js";
+import { roundDp } from "./util";
 
 interface AircraftPosition {
     y: number;
@@ -48,7 +49,7 @@ const gameSize = {x: 96355, y: 92030};
     basemap.eventMode = 'static';
     app.stage.on('pointerdown', e => {
         const mousePos = e.getLocalPosition(basemap)
-        console.log({x: mousePos.x*100, y: mousePos.y*100});
+        console.log({x: roundDp(mousePos.x*100, 1), y: roundDp(mousePos.y*100, 1)});
     });
 
     const acftsdata: AircraftCollection = await loadJson.load("/sample.json");
