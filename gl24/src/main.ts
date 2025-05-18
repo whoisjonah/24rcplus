@@ -6,7 +6,7 @@ interface AircraftPosition {
     x: number;
 }
 
-interface AircraftData {
+interface AircraftCollectionData {
     heading: number;
     playerName: string;
     altitude: number;
@@ -19,8 +19,22 @@ interface AircraftData {
 }
 
 interface AircraftCollection {
-    [key: string]: AircraftData;
+    [callsign: string]: AircraftCollectionData;
 }
+
+interface AircraftData extends AircraftCollectionData {
+    callsign: string;
+}
+
+function acftCollectionToAcftArray(acftCollection: AircraftCollection): AircraftData[] {
+    return Object.entries(acftCollection).map(([callsign, acftData]) => ({
+        callsign,
+        ...acftData
+    }));
+}
+
+/** aircraft collection to aircraft array */
+const ac2aa = acftCollectionToAcftArray;
 
 // const gameCoords = {
 //     top_left:     { x: -49222.1, y: -45890.8},
@@ -52,9 +66,7 @@ interface AircraftCollection {
         console.log({x: roundDp(mousePos.x*100, 1), y: roundDp(mousePos.y*100, 1)});
     });
 
-    // const acftsdata: AircraftCollection = await loadJson.load("/sample.json");
-
-    const acftsDisplay: { text: Text, acftdata: AircraftData }[] = [];
+    const acftsDisplay: { text: Text, acftData: AircraftCollectionData }[] = [];
 
     app.stage.eventMode = 'static';
     app.stage.hitArea = app.screen;
@@ -63,10 +75,10 @@ interface AircraftCollection {
 
     function positionTexts() {
         acftsDisplay.forEach(acftDisplay => {
-            const {text, acftdata} = acftDisplay;
+            const {text, acftData} = acftDisplay;
             text.position.copyFrom(basemap.position);
-            text.position.x += (acftdata.position.x / 100 - basemap.pivot.x) * basemap.scale.x;
-            text.position.y += (acftdata.position.y / 100 - basemap.pivot.y) * basemap.scale.x;
+            text.position.x += (acftData.position.x / 100 - basemap.pivot.x) * basemap.scale.x;
+            text.position.y += (acftData.position.y / 100 - basemap.pivot.y) * basemap.scale.x;
         });
     }
 
@@ -90,31 +102,50 @@ interface AircraftCollection {
         console.log(basemap.scale.x);
     })
 
-    let ping = 0
+    let ping = 3000
 
+    
+
+
+    // Initialise aircraft displays
+    const initAcftCollectionReq = await fetch("http://localhost:3000/acft-data")
+    const initAcftCollection: AircraftCollection = await initAcftCollectionReq.json();
+    const initAcftDatas = ac2aa(initAcftCollection);
+
+    initAcftDatas.forEach(acftData => {
+        const text = new Text({
+            text: '*',
+            style: {
+                fontFamily: 'Arial',
+                fontSize: 24,
+                fill: 0xffffff,
+                align: 'center',
+            }
+        });
+        acftsDisplay.push({ text, acftData });
+        positionTexts();
+        app.stage.addChild(text);
+        console.log(`${acftData.callsign}: ${acftData.position.x}, ${acftData.position.y}`);
+    });
+    
+    // Update aircraft displays
     app.ticker.add((time) =>
     {
         ping += time.deltaMS;
-        if (ping > 3000) {
+        if (ping >= 3000) {
             ping -= 3000;
             fetch("http://localhost:3000/acft-data").then(async (res) => {
-                const acftdatacoll:AircraftCollection = await res.json();
-                for (const [callsign, acftdata] of Object.entries(acftdatacoll)) {
-                    const text = new Text({
-                        text: '*',
-                        style: {
-                            fontFamily: 'Arial',
-                            fontSize: 24,
-                            fill: 0xffffff,
-                            align: 'center',
-                        }
-                    });
-                    acftsDisplay.push({ text, acftdata });
-                    positionTexts();
-                    app.stage.addChild(text);
-                    console.log(`${callsign}: ${acftdata.position.x}, ${acftdata.position.y}`);
-                }
-            })
+                const newAcftCollection: AircraftCollection = await res.json();
+                const newAcftDatas = ac2aa(newAcftCollection);
+
+                newAcftDatas.forEach(acftData => {
+                    const matchingDisplay = acftsDisplay.find(display => display.acftData.playerName == acftData.playerName);
+                    if (matchingDisplay) {
+                        matchingDisplay.acftData = acftData
+                    }
+                });
+            });
+            positionTexts();
         }
     });
 
