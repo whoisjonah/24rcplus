@@ -22,11 +22,11 @@ interface AircraftCollection {
     [key: string]: AircraftData;
 }
 
-const gameCoords = {
-    top_left:     { x: -49222.1, y: -45890.8},
-    bottom_right: { x:  47132.9, y:  46139.2},
-};
-const gameSize = {x: 96355, y: 92030};
+// const gameCoords = {
+//     top_left:     { x: -49222.1, y: -45890.8},
+//     bottom_right: { x:  47132.9, y:  46139.2},
+// };
+// const gameSize = {x: 96355, y: 92030};
 
 (async () => {
     // Create a new application
@@ -52,25 +52,9 @@ const gameSize = {x: 96355, y: 92030};
         console.log({x: roundDp(mousePos.x*100, 1), y: roundDp(mousePos.y*100, 1)});
     });
 
-    const acftsdata: AircraftCollection = await loadJson.load("/sample.json");
+    // const acftsdata: AircraftCollection = await loadJson.load("/sample.json");
 
     const acftsDisplay: { text: Text, acftdata: AircraftData }[] = [];
-
-    for (const [callsign, acftdata] of Object.entries(acftsdata)) {
-         const text = new Text({
-            text: '*',
-            style: {
-                fontFamily: 'Arial',
-                fontSize: 24,
-                fill: 0xff1010,
-                align: 'center',
-            }
-        });
-        acftsDisplay.push({ text, acftdata });
-        positionTexts();
-        app.stage.addChild(text);
-        console.log(`${callsign}: ${acftdata.position.x}, ${acftdata.position.y}`);
-    }
 
     app.stage.eventMode = 'static';
     app.stage.hitArea = app.screen;
@@ -106,11 +90,32 @@ const gameSize = {x: 96355, y: 92030};
         console.log(basemap.scale.x);
     })
 
-
+    let ping = 0
 
     app.ticker.add((time) =>
     {
-      NOOP()
+        ping += time.deltaMS;
+        if (ping > 3000) {
+            ping -= 3000;
+            fetch("http://localhost:3000/acft-data").then(async (res) => {
+                const acftdatacoll:AircraftCollection = await res.json();
+                for (const [callsign, acftdata] of Object.entries(acftdatacoll)) {
+                    const text = new Text({
+                        text: '*',
+                        style: {
+                            fontFamily: 'Arial',
+                            fontSize: 24,
+                            fill: 0xffffff,
+                            align: 'center',
+                        }
+                    });
+                    acftsDisplay.push({ text, acftdata });
+                    positionTexts();
+                    app.stage.addChild(text);
+                    console.log(`${callsign}: ${acftdata.position.x}, ${acftdata.position.y}`);
+                }
+            })
+        }
     });
 
 })();
