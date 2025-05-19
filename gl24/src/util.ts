@@ -11,3 +11,7 @@ export function acftCollectionToAcftArray(acftCollection: AircraftCollection): A
         ...acftData
     }));
 }
+
+export function altToFL(altitude: number): string {
+    return Math.round(altitude/100).toString().padStart(3, "0");
+}

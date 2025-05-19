@@ -19,11 +19,28 @@ server.get("/acft-data", (req, res) => {
 })
 
 server.listen(PORT, () => {
-    console.log(`test server listening on ${PORT}. http://localhost:${PORT}.`);
+    process.stdout.write(`test server listening on ${PORT}. http://localhost:${PORT}.\n> `);
 });
 
+process.stdout.write("> ");
 process.stdin.on("data", data => {
     const str = data.toString().trim();
-    if (str == "reset" || str == "reload")
+    if (str == "reset" || str == "reload") {
         i = 0;
+        console.log("\x1B[32msuccess\x1B[0m");
+    }
+
+    if (str == "get")
+        console.log(i);
+
+    const args = str.split(" ");
+    if (args[0] == "set") {
+        const newI = parseInt(args[1]);
+        if (isNaN(newI)) return console.log("\x1B[31mfail\x1B[0m");
+        if (newI < 0) newI = 0;
+        if (newI > max) newI = max;
+        i = newI
+        console.log("\x1B[32msuccess\x1B[0m");
+    }
+    process.stdout.write("> ");
 });

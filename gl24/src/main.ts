@@ -28,6 +28,7 @@ const ac2aa = acftCollectionToAcftArray;
     const basemap = new Graphics(basemapAsset);
 
     basemap.position.set(app.screen.width / 2, app.screen.height / 2);
+    basemap.scale.set(1);
     app.stage.addChild(basemap);
 
     basemap.eventMode = 'static';
