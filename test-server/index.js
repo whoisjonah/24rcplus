@@ -21,3 +21,9 @@ server.get("/acft-data", (req, res) => {
 server.listen(PORT, () => {
     console.log(`test server listening on ${PORT}. http://localhost:${PORT}.`);
 });
+
+process.stdin.on("data", data => {
+    const str = data.toString().trim();
+    if (str == "reset" || str == "reload")
+        i = 0;
+});

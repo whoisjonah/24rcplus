@@ -1,37 +1,7 @@
-import { Application, Assets, FederatedPointerEvent, Text, Graphics, NOOP, loadJson } from "pixi.js";
-import { roundDp } from "./util";
-
-interface AircraftPosition {
-    y: number;
-    x: number;
-}
-
-interface AircraftCollectionData {
-    heading: number;
-    playerName: string;
-    altitude: number;
-    aircraftType: string;
-    position: AircraftPosition;
-    speed: number;
-    wind: string;
-    isOnGround: boolean;
-    groundSpeed: number;
-}
-
-interface AircraftCollection {
-    [callsign: string]: AircraftCollectionData;
-}
-
-interface AircraftData extends AircraftCollectionData {
-    callsign: string;
-}
-
-function acftCollectionToAcftArray(acftCollection: AircraftCollection): AircraftData[] {
-    return Object.entries(acftCollection).map(([callsign, acftData]) => ({
-        callsign,
-        ...acftData
-    }));
-}
+import { Application, Assets, FederatedPointerEvent, Graphics } from "pixi.js";
+import { roundDp, acftCollectionToAcftArray } from "./util";
+import { AircraftCollection } from "./types"
+import AircraftDisplay from "./AircraftDisplay";
 
 /** aircraft collection to aircraft array */
 const ac2aa = acftCollectionToAcftArray;
@@ -46,7 +16,7 @@ const ac2aa = acftCollectionToAcftArray;
     // Create a new application
     const app = new Application();
 
-    await app.init({ antialias: true, background: "#1099bb", resizeTo: window });
+    await app.init({ antialias: true, background: "#181818", resizeTo: window });
     document.getElementById("pixi-container")!.appendChild(app.canvas);
 
 
@@ -66,7 +36,7 @@ const ac2aa = acftCollectionToAcftArray;
         console.log({x: roundDp(mousePos.x*100, 1), y: roundDp(mousePos.y*100, 1)});
     });
 
-    const acftsDisplay: { text: Text, acftData: AircraftCollectionData }[] = [];
+    let acftDisplays: AircraftDisplay[] = [];
 
     app.stage.eventMode = 'static';
     app.stage.hitArea = app.screen;
@@ -74,12 +44,7 @@ const ac2aa = acftCollectionToAcftArray;
     app.stage.on('rightup', () => app.stage.off('pointermove', dragmap));
 
     function positionTexts() {
-        acftsDisplay.forEach(acftDisplay => {
-            const {text, acftData} = acftDisplay;
-            text.position.copyFrom(basemap.position);
-            text.position.x += (acftData.position.x / 100 - basemap.pivot.x) * basemap.scale.x;
-            text.position.y += (acftData.position.y / 100 - basemap.pivot.y) * basemap.scale.x;
-        });
+        acftDisplays.forEach(acftDisplay => acftDisplay.positionText());
     }
 
     function dragmap(e: FederatedPointerEvent) {
@@ -102,10 +67,18 @@ const ac2aa = acftCollectionToAcftArray;
         console.log(basemap.scale.x);
     })
 
-    let ping = 3000
 
-    
 
+
+
+    let ping = 3000;
+
+
+    document.addEventListener("keydown", ev => {
+        if (ev.key === "ArrowRight") {
+            ping = 3000;
+        }
+    })
 
     // Initialise aircraft displays
     const initAcftCollectionReq = await fetch("http://localhost:3000/acft-data")
@@ -113,21 +86,13 @@ const ac2aa = acftCollectionToAcftArray;
     const initAcftDatas = ac2aa(initAcftCollection);
 
     initAcftDatas.forEach(acftData => {
-        const text = new Text({
-            text: '*',
-            style: {
-                fontFamily: 'Arial',
-                fontSize: 24,
-                fill: 0xffffff,
-                align: 'center',
-            }
-        });
-        acftsDisplay.push({ text, acftData });
-        positionTexts();
-        app.stage.addChild(text);
+        const acftDisplay = new AircraftDisplay(acftData, app.stage, basemap);
+        acftDisplays.push(acftDisplay);
+        acftDisplay.positionText();
         console.log(`${acftData.callsign}: ${acftData.position.x}, ${acftData.position.y}`);
     });
     
+
     // Update aircraft displays
     app.ticker.add((time) =>
     {
@@ -135,17 +100,38 @@ const ac2aa = acftCollectionToAcftArray;
         if (ping >= 3000) {
             ping -= 3000;
             fetch("http://localhost:3000/acft-data").then(async (res) => {
-                const newAcftCollection: AircraftCollection = await res.json();
-                const newAcftDatas = ac2aa(newAcftCollection);
+                const acftCollection: AircraftCollection = await res.json();
+                const acftDatas = ac2aa(acftCollection);
 
-                newAcftDatas.forEach(acftData => {
-                    const matchingDisplay = acftsDisplay.find(display => display.acftData.playerName == acftData.playerName);
-                    if (matchingDisplay) {
-                        matchingDisplay.acftData = acftData
+                const displaysToKill = [];
+
+                // Iterate through the existing displays
+                acftDisplays.forEach((display, index) => {
+                    // If the display has new data
+                    const matchingData = acftDatas.find(acftData => acftData.playerName === display.acftData.playerName);
+                    if (matchingData) {
+                        display.updateData(matchingData)
+                    }
+                    else {
+                        // The display has no new data
+                        display.notFound();
+                        if (display.ttl <= 0)
+                            display.destroy();
+                            displaysToKill.push(index);
                     }
                 });
+
+                // Data that cannot be found in existing displays
+                const newAcftDatas = acftDatas.filter(acftData => !acftDisplays.find(display => display.acftData.playerName === acftData.playerName));
+                newAcftDatas.forEach(acftData => {
+                    const acftDisplay = new AircraftDisplay(acftData, app.stage, basemap);
+                    acftDisplays.push(acftDisplay);
+                    acftDisplay.positionText();
+                });
+
+                // Filter displays with TTL < 0;
+                acftDisplays = acftDisplays.filter(display => display.ttl > 0);
             });
-            positionTexts();
         }
     });
 
