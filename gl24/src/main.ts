@@ -16,18 +16,17 @@ const ac2aa = acftCollectionToAcftArray;
     // Create a new application
     const app = new Application();
 
-    await app.init({ /*antialias: true,*/ background: 0, resizeTo: window });
+    await app.init({ antialias: true, background: 0, resizeTo: window });
     document.getElementById("pixi-container")!.appendChild(app.canvas);
 
-    const coast = await Assets.load({
+    const baseMapAsset = await Assets.load({
         src: '/assets/coast.svg',
         data: { parseAsGraphicsContext: true },
     });
 
-    const basemap = new Graphics(coast).stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
+    const basemap = new Graphics(baseMapAsset).stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
 
     basemap.position.set(app.screen.width / 2, app.screen.height / 2);
-    basemap.scale.set(1);
     app.stage.addChild(basemap);
 
     basemap.eventMode = 'static';
@@ -46,6 +45,11 @@ const ac2aa = acftCollectionToAcftArray;
     function positionTexts() {
         acftDisplays.forEach(acftDisplay => acftDisplay.positionText());
     }
+
+    app.renderer.on("resize", (w, h) => {
+        basemap.position.set(w / 2, h / 2);
+        positionTexts();
+    });
 
     function dragmap(e: FederatedPointerEvent) {
         // change pivot instead of position so we can zoom from centre
