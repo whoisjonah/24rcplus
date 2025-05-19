@@ -104,10 +104,9 @@ const ac2aa = acftCollectionToAcftArray;
                 const acftCollection: AircraftCollection = await res.json();
                 const acftDatas = ac2aa(acftCollection);
 
-                const displaysToKill = [];
 
                 // Iterate through the existing displays
-                acftDisplays.forEach((display, index) => {
+                acftDisplays.forEach(display => {
                     // If the display has new data
                     const matchingData = acftDatas.find(acftData => acftData.playerName === display.acftData.playerName);
                     if (matchingData) {
@@ -118,7 +117,6 @@ const ac2aa = acftCollectionToAcftArray;
                         display.notFound();
                         if (display.ttl <= 0)
                             display.destroy();
-                            displaysToKill.push(index);
                     }
                 });
 
