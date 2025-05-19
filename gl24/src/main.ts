@@ -16,16 +16,15 @@ const ac2aa = acftCollectionToAcftArray;
     // Create a new application
     const app = new Application();
 
-    await app.init({ antialias: true, background: "#181818", resizeTo: window });
+    await app.init({ /*antialias: true,*/ background: 0, resizeTo: window });
     document.getElementById("pixi-container")!.appendChild(app.canvas);
 
-
-    const basemapAsset = await Assets.load({
-        src: '/assets/basemap.svg',
+    const coast = await Assets.load({
+        src: '/assets/coast.svg',
         data: { parseAsGraphicsContext: true },
     });
 
-    const basemap = new Graphics(basemapAsset);
+    const basemap = new Graphics(coast).stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
 
     basemap.position.set(app.screen.width / 2, app.screen.height / 2);
     basemap.scale.set(1);
@@ -33,7 +32,7 @@ const ac2aa = acftCollectionToAcftArray;
 
     basemap.eventMode = 'static';
     app.stage.on('pointerdown', e => {
-        const mousePos = e.getLocalPosition(basemap)
+        const mousePos = e.getLocalPosition(basemap);
         console.log({x: roundDp(mousePos.x*100, 1), y: roundDp(mousePos.y*100, 1)});
     });
 
@@ -69,9 +68,6 @@ const ac2aa = acftCollectionToAcftArray;
     })
 
 
-
-
-
     let ping = 3000;
 
 
@@ -80,19 +76,6 @@ const ac2aa = acftCollectionToAcftArray;
             ping = 3000;
         }
     })
-
-    // Initialise aircraft displays
-    const initAcftCollectionReq = await fetch("http://localhost:3000/acft-data")
-    const initAcftCollection: AircraftCollection = await initAcftCollectionReq.json();
-    const initAcftDatas = ac2aa(initAcftCollection);
-
-    initAcftDatas.forEach(acftData => {
-        const acftDisplay = new AircraftDisplay(acftData, app.stage, basemap);
-        acftDisplays.push(acftDisplay);
-        acftDisplay.positionText();
-        console.log(`${acftData.callsign}: ${acftData.position.x}, ${acftData.position.y}`);
-    });
-    
 
     // Update aircraft displays
     app.ticker.add((time) =>
@@ -103,7 +86,6 @@ const ac2aa = acftCollectionToAcftArray;
             fetch("http://localhost:3000/acft-data").then(async (res) => {
                 const acftCollection: AircraftCollection = await res.json();
                 const acftDatas = ac2aa(acftCollection);
-
 
                 // Iterate through the existing displays
                 acftDisplays.forEach(display => {
@@ -129,6 +111,15 @@ const ac2aa = acftCollectionToAcftArray;
                 });
 
                 // Filter displays with TTL < 0;
+                acftDisplays = acftDisplays.filter(display => display.ttl > 0);
+            }).catch(() => {
+                // Ping failed. All displays not found.
+                acftDisplays.forEach(display => {
+                    display.notFound();
+                    if (display.ttl <= 0)
+                        display.destroy();
+                });
+
                 acftDisplays = acftDisplays.filter(display => display.ttl > 0);
             });
         }

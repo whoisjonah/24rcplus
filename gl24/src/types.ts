@@ -1,4 +1,4 @@
-export interface AircraftPosition {
+export interface Position {
     y: number;
     x: number;
 }
@@ -8,7 +8,7 @@ export interface AircraftCollectionData {
     playerName: string;
     altitude: number;
     aircraftType: string;
-    position: AircraftPosition;
+    position: Position;
     speed: number;
     wind: string;
     isOnGround: boolean;
