@@ -74,7 +74,7 @@ export default class AircraftDisplay {
     updateData(acftData: AircraftData) {
         this.head.text = "*";
         this.ttl = DEFAULT_TTL;
-        this.climbrate = acftData.altitude - this.acftData.altitude // New alt - old alt
+        this.climbrate = acftData.altitude - this.acftData.altitude // New alt - old alt // Eventually need to do math to get what the delta is in fpm or whatever's actually used
         this.acftData = acftData;
         this.formatText();
         this.positionText();
