@@ -1,11 +1,11 @@
-import { Container, Graphics, Text } from "pixi.js";
+import { Container, Text } from "pixi.js";
 import { AircraftData, Position } from "./types";
 import { altToFL } from "./util";
 const DEFAULT_TTL = 3
 
 export default class AircraftDisplay {
     stage: Container;
-    basemap: Graphics;
+    basemap: Container;
     acftData: AircraftData;
     head: Text;
     tails: { text: Text, position: Position, ttl: number }[] = [];
@@ -17,7 +17,7 @@ export default class AircraftDisplay {
      * @param acftData AircraftData of the aircraft being tracked
      * @param stage Stage to draw the aircraft display to
      */
-    constructor(acftData: AircraftData, stage: Container, basemap: Graphics) {
+    constructor(acftData: AircraftData, stage: Container, basemap: Container) {
         this.acftData = acftData;
         this.stage = stage;
         this.basemap = basemap;
@@ -34,7 +34,7 @@ export default class AircraftDisplay {
 
         this.txtcallsign = new Text({
             style: {
-                fontFamily: 'Cascadia Code',
+                fontFamily: 'Cascadia Mono',
                 fontSize: 14,
                 fill: 0xffffff,
                 align: 'left',
@@ -78,7 +78,7 @@ export default class AircraftDisplay {
         const tailText = new Text({
             text: "•",
             style: {
-                fontFamily: 'Cascadia Code',
+                fontFamily: 'Cascadia Mono',
                 fontSize: 14,
                 fill: 0xffffff,
                 align: 'left',

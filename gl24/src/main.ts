@@ -1,7 +1,8 @@
-import { Application, Assets, FederatedPointerEvent, Graphics } from "pixi.js";
+import { Application, Assets, Container, ConvertedStrokeStyle, FederatedPointerEvent, Graphics, GraphicsContext } from "pixi.js";
 import { roundDp, acftCollectionToAcftArray } from "./util";
 import { AircraftCollection } from "./types"
 import AircraftDisplay from "./AircraftDisplay";
+import { DisplayMap } from "./MapManager";
 
 /** aircraft collection to aircraft array */
 const ac2aa = acftCollectionToAcftArray;
@@ -11,28 +12,54 @@ const ac2aa = acftCollectionToAcftArray;
 //     bottom_right: { x:  47132.9, y:  46139.2},
 // };
 // const gameSize = {x: 96355, y: 92030};
+const antialias = false;
 
 (async () => {
     // Create a new application
     const app = new Application();
 
-    await app.init({ antialias: true, background: 0, resizeTo: window });
+    await app.init({ antialias, background: 0, resizeTo: window });
     document.getElementById("pixi-container")!.appendChild(app.canvas);
-
-    const baseMapAsset = await Assets.load({
-        src: '/assets/coast.svg',
-        data: { parseAsGraphicsContext: true },
-    });
-
-    const basemap = new Graphics(baseMapAsset).stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
+    
+    const basemap = new Container(); //new Graphics(baseMapAsset).stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
 
     basemap.position.set(app.screen.width / 2, app.screen.height / 2);
     app.stage.addChild(basemap);
 
-    basemap.eventMode = 'static';
     app.stage.on('pointerdown', e => {
         const mousePos = e.getLocalPosition(basemap);
-        console.log({x: roundDp(mousePos.x*100, 1), y: roundDp(mousePos.y*100, 1)});
+        // console.log({x: roundDp(mousePos.x*100, 1), y: roundDp(mousePos.y*100, 1)});
+
+    });
+
+    let mapClickCount = 0;
+    let Approach25R: Graphics;
+
+    app.stage.on("mousedown", async () => {
+        if (mapClickCount == 0) {
+            const coastAsset: GraphicsContext = await Assets.load({
+                src: "/assets/coast.svg",
+                data: { parseAsGraphicsContext: true },
+            });
+
+            const coast = new Graphics(coastAsset).stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
+            basemap.addChild(coast);
+        }
+        else if (mapClickCount == 1) {
+            const approachAsset: GraphicsContext = await Assets.load({
+                src: "/assets/IRFD/25R final.svg",
+                data: { parseAsGraphicsContext: true },
+            });
+
+            Approach25R = new Graphics(approachAsset).stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
+            basemap.addChild(Approach25R);
+        }
+        else if (mapClickCount == 2) {
+            Approach25R.destroy();
+        }
+
+        mapClickCount++;
+
     });
 
     let acftDisplays: AircraftDisplay[] = [];
@@ -41,6 +68,8 @@ const ac2aa = acftCollectionToAcftArray;
     app.stage.hitArea = app.screen;
     app.stage.on('rightdown', () => app.stage.on('pointermove', dragmap));
     app.stage.on('rightup', () => app.stage.off('pointermove', dragmap));
+    app.stage.on('touchstart', () => app.stage.on('pointermove', dragmap));
+    app.stage.on('touchend', () => app.stage.off('pointermove', dragmap));
 
     function positionTexts() {
         acftDisplays.forEach(acftDisplay => acftDisplay.positionText());
@@ -68,7 +97,7 @@ const ac2aa = acftCollectionToAcftArray;
             basemap.scale.set(basemap.scale.x * 1.1);
 
         positionTexts();
-        console.log(basemap.scale.x);
+        // console.log(basemap.scale.x);
     })
 
 
@@ -79,7 +108,9 @@ const ac2aa = acftCollectionToAcftArray;
         if (ev.key === "ArrowRight") {
             ping = 3000;
         }
-    })
+    });
+
+    const pollauthority  = "192.168.0.180:3000" // "localhost:3000"
 
     // Update aircraft displays
     app.ticker.add((time) =>
@@ -87,7 +118,7 @@ const ac2aa = acftCollectionToAcftArray;
         ping += time.deltaMS;
         if (ping >= 3000) {
             ping -= 3000;
-            fetch("http://localhost:3000/acft-data").then(async (res) => {
+            fetch(`http://${pollauthority}/acft-data`).then(async (res) => {
                 const acftCollection: AircraftCollection = await res.json();
                 const acftDatas = ac2aa(acftCollection);
 
