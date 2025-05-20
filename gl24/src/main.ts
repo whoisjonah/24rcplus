@@ -1,17 +1,18 @@
-import { Application, Assets, Container, ConvertedStrokeStyle, FederatedPointerEvent, Graphics, GraphicsContext } from "pixi.js";
+import { Application, Assets, Container, ConvertedStrokeStyle, FederatedPointerEvent, Graphics, GraphicsContext, GraphicsPath, Loader, path, Sprite, Texture } from "pixi.js";
 import { roundDp, acftCollectionToAcftArray } from "./util";
-import { AircraftCollection } from "./types"
+import { SVGParser } from "./lineParser/SVGParser";
+import { AircraftCollection } from "./types";
 import AircraftDisplay from "./AircraftDisplay";
 import { DisplayMap } from "./MapManager";
 
 /** aircraft collection to aircraft array */
 const ac2aa = acftCollectionToAcftArray;
 
-// const gameCoords = {
-//     top_left:     { x: -49222.1, y: -45890.8},
-//     bottom_right: { x:  47132.9, y:  46139.2},
-// };
-// const gameSize = {x: 96355, y: 92030};
+const gameCoords = {
+    top_left:     { x: -49222.1, y: -45890.8},
+    bottom_right: { x:  47132.9, y:  46139.2},
+};
+const gameSize = {x: 96355, y: 92030};
 const antialias = false;
 
 (async () => {
@@ -21,48 +22,74 @@ const antialias = false;
     await app.init({ antialias, background: 0, resizeTo: window });
     document.getElementById("pixi-container")!.appendChild(app.canvas);
     
-    const basemap = new Container(); //new Graphics(baseMapAsset).stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
+    const basemap = new Container();
 
+    const trackContainer = new Container();
     basemap.position.set(app.screen.width / 2, app.screen.height / 2);
     app.stage.addChild(basemap);
+    app.stage.addChild(trackContainer);
 
-    app.stage.on('pointerdown', e => {
-        const mousePos = e.getLocalPosition(basemap);
-        // console.log({x: roundDp(mousePos.x*100, 1), y: roundDp(mousePos.y*100, 1)});
 
+    // const expensiveAsset = await Assets.load<Texture>("/assets/expensive.png");
+    // const expensiveSprite = new Sprite(expensiveAsset);
+    // const expensiveContainer = new Container();
+
+    // expensiveSprite.scale.x = (gameSize.x / expensiveSprite.width/100)
+    // expensiveSprite.scale.y = (gameSize.y / expensiveSprite.height/100)
+    // expensiveContainer.addChild(expensiveSprite);
+
+    // expensiveContainer.pivot.set(-gameCoords.top_left.x/100, -gameCoords.top_left.y/100);
+    // // expensiveContainer.position.set(gameCoords.top_left.x/100, gameCoords.top_left.y/100);
+    // basemap.addChild(expensiveContainer);
+
+
+
+    const coastAsset: GraphicsContext = await Assets.load({
+        src: "/assets/coast.svg",
+        data: { parseAsGraphicsContext: true },
     });
+    const coast = new Graphics(coastAsset)
+        .stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
+    const coastContainer = new Container();
+    coastContainer.addChild(coast);
+    basemap.addChild(coastContainer);
 
-    let mapClickCount = 0;
-    let Approach25R: Graphics;
+    const e = await fetch("/assets/IRFD/25R final.svg")
+    const f = await e.text();
 
-    app.stage.on("mousedown", async () => {
-        if (mapClickCount == 0) {
-            const coastAsset: GraphicsContext = await Assets.load({
-                src: "/assets/coast.svg",
-                data: { parseAsGraphicsContext: true },
-            });
+    const session = SVGParser(f, new GraphicsContext());
 
-            const coast = new Graphics(coastAsset).stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
-            basemap.addChild(coast);
-        }
-        else if (mapClickCount == 1) {
-            const approachAsset: GraphicsContext = await Assets.load({
-                src: "/assets/IRFD/25R final.svg",
-                data: { parseAsGraphicsContext: true },
-            });
+    const Approach25R = new Graphics();
+    Approach25R.setStrokeStyle({ pixelLine: true})
+    session.paths.forEach(path => {
+        Approach25R
+            .path(path)
+            .stroke();
+    })
 
-            Approach25R = new Graphics(approachAsset).stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
-            basemap.addChild(Approach25R);
-        }
-        else if (mapClickCount == 2) {
-            Approach25R.destroy();
-        }
+    basemap.addChild(Approach25R);
+    Approach25R.alpha = 0.4;
+    Approach25R.tint = 0xFFFF00;
 
-        mapClickCount++;
 
-    });
+    const e1 = await fetch("/assets/IRFD/IRFD Ground.svg")
+    const f1 = await e1.text();
 
-    let acftDisplays: AircraftDisplay[] = [];
+    const session1 = SVGParser(f1, new GraphicsContext());
+
+    const Approach25R1 = new Graphics();
+    Approach25R1.setStrokeStyle({ pixelLine: true })
+    session1.paths.forEach(path => {
+        Approach25R1
+            .path(path)
+            .stroke()
+    })
+
+    basemap.addChild(Approach25R1);
+    Approach25R1.alpha = 0.2;
+
+
+
 
     app.stage.eventMode = 'static';
     app.stage.hitArea = app.screen;
@@ -70,6 +97,8 @@ const antialias = false;
     app.stage.on('rightup', () => app.stage.off('pointermove', dragmap));
     app.stage.on('touchstart', () => app.stage.on('pointermove', dragmap));
     app.stage.on('touchend', () => app.stage.off('pointermove', dragmap));
+
+    let acftDisplays: AircraftDisplay[] = [];
 
     function positionTexts() {
         acftDisplays.forEach(acftDisplay => acftDisplay.positionText());
@@ -140,7 +169,7 @@ const antialias = false;
                 // Data that cannot be found in existing displays
                 const newAcftDatas = acftDatas.filter(acftData => !acftDisplays.find(display => display.acftData.playerName === acftData.playerName));
                 newAcftDatas.forEach(acftData => {
-                    const acftDisplay = new AircraftDisplay(acftData, app.stage, basemap);
+                    const acftDisplay = new AircraftDisplay(acftData, trackContainer, basemap);
                     acftDisplays.push(acftDisplay);
                     acftDisplay.positionText();
                 });
