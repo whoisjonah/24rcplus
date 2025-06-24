@@ -1,7 +1,7 @@
-import { Container, Graphics } from "pixi.js";
+// import { Container, Graphics } from "pixi.js";
 
 export default class DistanceTool {
-    constructor(stage: Container, basemap: Graphics) {
+    // constructor(stage: Container, basemap: Graphics) {
 
-    }
+    // }
 }

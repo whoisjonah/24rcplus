@@ -1,18 +1,17 @@
-import { Application, Assets, Container, ConvertedStrokeStyle, FederatedPointerEvent, Graphics, GraphicsContext, GraphicsPath, Loader, path, Sprite, Texture } from "pixi.js";
-import { roundDp, acftCollectionToAcftArray } from "./util";
+import { Application, Assets, Container, FederatedPointerEvent, Graphics, GraphicsContext } from "pixi.js";
+import { acftCollectionToAcftArray } from "./util";
 import { SVGParser } from "./lineParser/SVGParser";
 import { AircraftCollection } from "./types";
 import AircraftDisplay from "./AircraftDisplay";
-import { DisplayMap } from "./MapManager";
 
 /** aircraft collection to aircraft array */
 const ac2aa = acftCollectionToAcftArray;
 
-const gameCoords = {
-    top_left:     { x: -49222.1, y: -45890.8},
-    bottom_right: { x:  47132.9, y:  46139.2},
-};
-const gameSize = {x: 96355, y: 92030};
+// const gameCoords = {
+//     top_left:     { x: -49222.1, y: -45890.8},
+//     bottom_right: { x:  47132.9, y:  46139.2},
+// };
+// const gameSize = {x: 96355, y: 92030};
 const antialias = false;
 
 (async () => {
