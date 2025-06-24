@@ -19,7 +19,13 @@ const antialias = false;
     // Create a new application
     const app = new Application();
 
-    await app.init({ antialias, background: 0, resizeTo: window });
+    let failed = false;
+    let failReason = "";
+    await app.init({ antialias, background: 0, resizeTo: window }).catch(e => { failed = true; failReason = e });
+    if (failed) {
+        document.body.innerHTML = `Could not start. Try reloading. ${failReason}`;
+        return;
+    }
     document.getElementById("pixi-container")!.appendChild(app.canvas);
     
     const basemap = new Container();
@@ -54,39 +60,39 @@ const antialias = false;
     coastContainer.addChild(coast);
     basemap.addChild(coastContainer);
 
-    const e = await fetch("/assets/IRFD/25R final.svg")
-    const f = await e.text();
+    // const e = await fetch("/assets/IRFD/25R final.svg")
+    // const f = await e.text();
 
-    const session = SVGParser(f, new GraphicsContext());
+    // const session = SVGParser(f, new GraphicsContext());
 
-    const Approach25R = new Graphics();
-    Approach25R.setStrokeStyle({ pixelLine: true})
-    session.paths.forEach(path => {
-        Approach25R
+    // const Approach25R = new Graphics();
+    // Approach25R.setStrokeStyle({ pixelLine: true})
+    // // session.paths.forEach(path => {
+    //     Approach25R
+    //         .path(path)
+    //         .stroke();
+    // })
+
+    // basemap.addChild(Approach25R);
+    // Approach25R.alpha = 0.4;
+    // Approach25R.tint = 0xFFFF00;
+
+
+    const groundSourceReq = await fetch("/assets/all-grounds.svg")
+    const groundSource = await groundSourceReq.text();
+
+    const groundSvgSess = SVGParser(groundSource, new GraphicsContext());
+
+    const allGrounds = new Graphics();
+    allGrounds.setStrokeStyle({ pixelLine: true });
+    groundSvgSess.paths.forEach(path => {
+        allGrounds
             .path(path)
             .stroke();
-    })
+    });
 
-    basemap.addChild(Approach25R);
-    Approach25R.alpha = 0.4;
-    Approach25R.tint = 0xFFFF00;
-
-
-    const e1 = await fetch("/assets/IRFD/IRFD Ground.svg")
-    const f1 = await e1.text();
-
-    const session1 = SVGParser(f1, new GraphicsContext());
-
-    const Approach25R1 = new Graphics();
-    Approach25R1.setStrokeStyle({ pixelLine: true })
-    session1.paths.forEach(path => {
-        Approach25R1
-            .path(path)
-            .stroke()
-    })
-
-    basemap.addChild(Approach25R1);
-    Approach25R1.alpha = 0.2;
+    basemap.addChild(allGrounds);
+    allGrounds.alpha = 0.2;
 
 
 
@@ -139,7 +145,7 @@ const antialias = false;
         }
     });
 
-    const pollauthority  = "192.168.0.180:3000" // "localhost:3000"
+    const pollauthority  = "24data.ptfs.app" // "localhost:3000"
 
     // Update aircraft displays
     app.ticker.add((time) =>
@@ -147,7 +153,7 @@ const antialias = false;
         ping += time.deltaMS;
         if (ping >= 3000) {
             ping -= 3000;
-            fetch(`http://${pollauthority}/acft-data`).then(async (res) => {
+            fetch(`https://${pollauthority}/acft-data`).then(async (res) => {
                 const acftCollection: AircraftCollection = await res.json();
                 const acftDatas = ac2aa(acftCollection);
 

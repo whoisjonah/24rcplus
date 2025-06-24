@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
+.env
 
 har.json
 *.har
