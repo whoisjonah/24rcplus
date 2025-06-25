@@ -134,16 +134,6 @@ const antialias = false;
         // console.log(basemap.scale.x);
     })
 
-
-    let ping = 3000;
-
-
-    document.addEventListener("keydown", ev => {
-        if (ev.key === "ArrowRight") {
-            ping = 3000;
-        }
-    });
-
     // const pollauthority = "http://localhost:3000";
     const pollauthority = "https://24data.ptfs.app";
 
