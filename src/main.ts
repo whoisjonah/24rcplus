@@ -2,7 +2,7 @@ import { Application, Assets, Container, FederatedPointerEvent, Graphics, Graphi
 import { acftCollectionToAcftArray } from "./util";
 import { SVGParser } from "./lineParser/SVGParser";
 import { AircraftCollection } from "./types";
-import AircraftDisplay from "./AircraftDisplay";
+import AircraftTrack from "./AircraftTrack";
 
 /** aircraft collection to aircraft array */
 const ac2aa = acftCollectionToAcftArray;
@@ -103,7 +103,7 @@ const antialias = false;
     app.stage.on('touchstart', () => app.stage.on('pointermove', dragmap));
     app.stage.on('touchend', () => app.stage.off('pointermove', dragmap));
 
-    let acftDisplays: AircraftDisplay[] = [];
+    let acftDisplays: AircraftTrack[] = [];
 
     function positionTexts() {
         acftDisplays.forEach(acftDisplay => acftDisplay.positionText());
@@ -144,54 +144,53 @@ const antialias = false;
         }
     });
 
-    const pollauthority  = "24data.ptfs.app" // "localhost:3000"
+    // const pollauthority = "http://localhost:3000";
+    const pollauthority = "https://24data.ptfs.app";
 
     // Update aircraft displays
-    app.ticker.add((time) =>
-    {
-        ping += time.deltaMS;
-        if (ping >= 3000) {
-            ping -= 3000;
-            fetch(`https://${pollauthority}/acft-data`).then(async (res) => {
-                const acftCollection: AircraftCollection = await res.json();
-                const acftDatas = ac2aa(acftCollection);
+    const tick = () => {
+        fetch(`${pollauthority}/acft-data`).then(async (res) => {
+            const acftCollection: AircraftCollection = await res.json();
+            const acftDatas = ac2aa(acftCollection);
 
-                // Iterate through the existing displays
-                acftDisplays.forEach(display => {
-                    // If the display has new data
-                    const matchingData = acftDatas.find(acftData => acftData.playerName === display.acftData.playerName);
-                    if (matchingData) {
-                        display.updateData(matchingData)
-                    }
-                    else {
-                        // The display has no new data
-                        display.notFound();
-                        if (display.ttl <= 0)
-                            display.destroy();
-                    }
-                });
-
-                // Data that cannot be found in existing displays
-                const newAcftDatas = acftDatas.filter(acftData => !acftDisplays.find(display => display.acftData.playerName === acftData.playerName));
-                newAcftDatas.forEach(acftData => {
-                    const acftDisplay = new AircraftDisplay(acftData, trackContainer, basemap);
-                    acftDisplays.push(acftDisplay);
-                    acftDisplay.positionText();
-                });
-
-                // Filter displays with TTL < 0;
-                acftDisplays = acftDisplays.filter(display => display.ttl > 0);
-            }).catch(() => {
-                // Ping failed. All displays not found.
-                acftDisplays.forEach(display => {
+            // Iterate through the existing displays
+            acftDisplays.forEach(display => {
+                // If the display has new data
+                const matchingData = acftDatas.find(acftData => acftData.playerName === display.acftData.playerName);
+                if (matchingData) {
+                    display.updateData(matchingData)
+                }
+                else {
+                    // The display has no new data
                     display.notFound();
                     if (display.ttl <= 0)
                         display.destroy();
-                });
-
-                acftDisplays = acftDisplays.filter(display => display.ttl > 0);
+                }
             });
-        }
-    });
+
+            // Data that cannot be found in existing displays
+            const newAcftDatas = acftDatas.filter(acftData => !acftDisplays.find(display => display.acftData.playerName === acftData.playerName));
+            newAcftDatas.forEach(acftData => {
+                const acftDisplay = new AircraftTrack(acftData, trackContainer, basemap);
+                acftDisplays.push(acftDisplay);
+                acftDisplay.positionText();
+            });
+
+            // Filter displays with TTL < 0;
+            acftDisplays = acftDisplays.filter(display => display.ttl > 0);
+        }).catch(() => {
+            // Ping failed. All displays not found.
+            acftDisplays.forEach(display => {
+                display.notFound();
+                if (display.ttl <= 0)
+                    display.destroy();
+            });
+
+            acftDisplays = acftDisplays.filter(display => display.ttl > 0);
+        });
+    };
+
+    tick();
+    setInterval(tick, 3000)
 
 })();
