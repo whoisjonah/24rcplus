@@ -3,13 +3,14 @@ import { AircraftData, Position } from "./types";
 import { altToFL } from "./util";
 const DEFAULT_TTL = 3
 
-export default class AircraftDisplay {
+export default class AircraftTrack {
     stage: Container;
     basemap: Container;
     acftData: AircraftData;
+    prevAlt: number;
     head: Text;
     tails: { text: Text, position: Position, ttl: number }[] = [];
-    txtcallsign: Text;
+    dataBlock: Text;
     ttl = DEFAULT_TTL;
 
     /**
@@ -19,6 +20,7 @@ export default class AircraftDisplay {
      */
     constructor(acftData: AircraftData, stage: Container, basemap: Container) {
         this.acftData = acftData;
+        this.prevAlt = acftData.altitude;
         this.stage = stage;
         this.basemap = basemap;
         this.head = new Text({
@@ -32,7 +34,7 @@ export default class AircraftDisplay {
         });
         this.stage.addChild(this.head);
 
-        this.txtcallsign = new Text({
+        this.dataBlock = new Text({
             style: {
                 fontFamily: 'Cascadia Mono',
                 fontSize: 14,
@@ -41,16 +43,21 @@ export default class AircraftDisplay {
             },
         });
         this.formatText();
-        this.stage.addChild(this.txtcallsign);
+        this.stage.addChild(this.dataBlock);
     }
     
     formatText() {
         const acftData = this.acftData;
+        const altitudeDelta = acftData.altitude - this.prevAlt;
+        const thresholdFPM = 500; // Show arrow if climbing or descending greater than 500 FPM.
+        const threasholdDelta = thresholdFPM / (60 / 3); // 60/Δt. We assume Δt is 3. In future we can timestamp acftData and find real Δt.
+        const altitudeArrow = (altitudeDelta > threasholdDelta) ? "↑" : (altitudeDelta < -threasholdDelta) ? "↓" : " "
 
-        this.txtcallsign.text =
+        this.dataBlock.text =
             `${acftData.callsign}\n` +
-            `${altToFL(acftData.altitude)}\n` +
-            `${acftData.heading.toString().padStart(3, "0")} ${Math.abs(acftData.speed)}\n`
+            `FL${altToFL(acftData.altitude)}${altitudeArrow}  ${acftData.speed}kt\n` +
+            `${acftData.aircraftType}\n`
+            // `${acftData.playerName}\n`
     }
 
     /**
@@ -62,9 +69,9 @@ export default class AircraftDisplay {
         this.head.position.x += (this.acftData.position.x / 100 - this.basemap.pivot.x) * this.basemap.scale.x;
         this.head.position.y += (this.acftData.position.y / 100 - this.basemap.pivot.y) * this.basemap.scale.x;
 
-        this.txtcallsign.position.copyFrom(this.head);
-        this.txtcallsign.position.x += 18;
-        this.txtcallsign.position.y -= 12;
+        this.dataBlock.position.copyFrom(this.head);
+        this.dataBlock.position.x += 18;
+        this.dataBlock.position.y -= 12;
 
         this.tails.forEach(tail => {
             tail.text.position.copyFrom(this.basemap.position);
@@ -99,6 +106,8 @@ export default class AircraftDisplay {
         this.acftData = acftData;
         this.formatText();
         this.positionText();
+        this.prevAlt = acftData.altitude;
+
     }
 
     notFound() {
@@ -112,7 +121,7 @@ export default class AircraftDisplay {
 
     destroy() {
         this.head.destroy(true);
-        this.txtcallsign.destroy(true);
+        this.dataBlock.destroy(true);
         this.tails.forEach(tail => {
             tail.text.destroy(true);
         })
