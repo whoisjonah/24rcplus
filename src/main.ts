@@ -120,7 +120,7 @@ const antialias = false;
     let acftDisplays: AircraftTrack[] = [];
 
     function positionTexts() {
-        acftDisplays.forEach(acftDisplay => acftDisplay.positionText());
+        acftDisplays.forEach(acftDisplay => acftDisplay.positionGraphics());
     }
 
     app.renderer.on("resize", (w, h) => {
@@ -177,7 +177,7 @@ const antialias = false;
             newAcftDatas.forEach(acftData => {
                 const acftDisplay = new AircraftTrack(acftData, trackContainer, basemap);
                 acftDisplays.push(acftDisplay);
-                acftDisplay.positionText();
+                acftDisplay.positionGraphics();
             });
 
             // Filter displays with TTL < 0;
