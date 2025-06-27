@@ -93,7 +93,21 @@ const antialias = false;
     basemap.addChild(allGrounds);
     allGrounds.alpha = 0.2;
 
+    const boundariesSourceReq = await fetch("/assets/boundaries.svg")
+    const boundariesSource = await boundariesSourceReq.text();
 
+    const boundariesSess = SVGParser(boundariesSource, new GraphicsContext());
+
+    const boundaries = new Graphics();
+    boundaries.setStrokeStyle({ pixelLine: true });
+    boundariesSess.paths.forEach(path => {
+        boundaries
+            .path(path)
+            .stroke();
+    });
+
+    basemap.addChild(boundaries);
+    boundaries.alpha = 0.2;
 
 
     app.stage.eventMode = 'static';
@@ -134,8 +148,8 @@ const antialias = false;
         // console.log(basemap.scale.x);
     })
 
-    // const pollauthority = "http://localhost:3000";
-    const pollauthority = "https://24data.ptfs.app";
+    const pollauthority = "http://localhost:3000";
+    // const pollauthority = "https://24data.ptfs.app";
 
     // Update aircraft displays
     const tick = () => {
