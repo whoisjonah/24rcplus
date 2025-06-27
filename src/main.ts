@@ -117,15 +117,15 @@ const antialias = false;
     app.stage.on('touchstart', () => app.stage.on('pointermove', dragmap));
     app.stage.on('touchend', () => app.stage.off('pointermove', dragmap));
 
-    let acftDisplays: AircraftTrack[] = [];
+    let acftTracks: AircraftTrack[] = [];
 
-    function positionTexts() {
-        acftDisplays.forEach(acftDisplay => acftDisplay.positionGraphics());
+    function positionGraphics() {
+        acftTracks.forEach(acftTrack => acftTrack.positionGraphics());
     }
 
     app.renderer.on("resize", (w, h) => {
         basemap.position.set(w / 2, h / 2);
-        positionTexts();
+        positionGraphics();
     });
 
     function dragmap(e: FederatedPointerEvent) {
@@ -133,7 +133,7 @@ const antialias = false;
         basemap.pivot.x -= e.movementX / basemap.scale.x;
         basemap.pivot.y -= e.movementY / basemap.scale.x;
 
-        positionTexts();
+        positionGraphics();
     }
 
     app.stage.on('wheel', e => {
@@ -144,53 +144,53 @@ const antialias = false;
         else if (e.deltaY < 0)
             basemap.scale.set(basemap.scale.x * 1.1);
 
-        positionTexts();
+        positionGraphics();
         // console.log(basemap.scale.x);
     })
 
     // const pollauthority = "http://localhost:3000";
     const pollauthority = "https://24data.ptfs.app";
 
-    // Update aircraft displays
+    // Update aircraft tracks
     const tick = () => {
         fetch(`${pollauthority}/acft-data`).then(async (res) => {
             const acftCollection: AircraftCollection = await res.json();
             const acftDatas = ac2aa(acftCollection);
 
-            // Iterate through the existing displays
-            acftDisplays.forEach(display => {
-                // If the display has new data
-                const matchingData = acftDatas.find(acftData => acftData.playerName === display.acftData.playerName);
+            // Iterate through the existing track
+            acftTracks.forEach(track => {
+                // If the track has new data
+                const matchingData = acftDatas.find(acftData => acftData.playerName === track.acftData.playerName);
                 if (matchingData) {
-                    display.updateData(matchingData)
+                    track.updateData(matchingData)
                 }
                 else {
-                    // The display has no new data
-                    display.notFound();
-                    if (display.ttl <= 0)
-                        display.destroy();
+                    // The track has no new data
+                    track.notFound();
+                    if (track.ttl <= 0)
+                        track.destroy();
                 }
             });
 
-            // Data that cannot be found in existing displays
-            const newAcftDatas = acftDatas.filter(acftData => !acftDisplays.find(display => display.acftData.playerName === acftData.playerName));
+            // Data that cannot be found in existing tracks
+            const newAcftDatas = acftDatas.filter(acftData => !acftTracks.find(track => track.acftData.playerName === acftData.playerName));
             newAcftDatas.forEach(acftData => {
-                const acftDisplay = new AircraftTrack(acftData, trackContainer, basemap);
-                acftDisplays.push(acftDisplay);
-                acftDisplay.positionGraphics();
+                const track = new AircraftTrack(acftData, trackContainer, basemap);
+                acftTracks.push(track);
+                track.positionGraphics();
             });
 
-            // Filter displays with TTL < 0;
-            acftDisplays = acftDisplays.filter(display => display.ttl > 0);
+            // Filter tracks with TTL < 0;
+            acftTracks = acftTracks.filter(track => track.ttl > 0);
         }).catch(() => {
-            // Ping failed. All displays not found.
-            acftDisplays.forEach(display => {
-                display.notFound();
-                if (display.ttl <= 0)
-                    display.destroy();
+            // Ping failed. All tracks not found.
+            acftTracks.forEach(track => {
+                track.notFound();
+                if (track.ttl <= 0)
+                    track.destroy();
             });
 
-            acftDisplays = acftDisplays.filter(display => display.ttl > 0);
+            acftTracks = acftTracks.filter(track => track.ttl > 0);
         });
     };
 
