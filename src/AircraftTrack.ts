@@ -1,6 +1,6 @@
 import { Container, Graphics, Text } from "pixi.js";
 import { AircraftData, Position } from "./types";
-import { altToFL, headingToCartesian } from "./util";
+import { altToFL, headingToCartesian, padHeading } from "./util";
 const DEFAULT_TTL = 3
 
 export default class AircraftTrack {
@@ -54,8 +54,8 @@ export default class AircraftTrack {
 
         this.dataBlock.text =
             `${acftData.callsign}\n` +
-            `FL${altToFL(acftData.altitude)}${altitudeArrow}  ${acftData.speed}kt\n` +
-            `${acftData.aircraftType}\n`
+            `FL${altToFL(acftData.altitude)}${altitudeArrow} ${Math.abs(acftData.speed)}kt\n` +
+            `${padHeading(acftData.heading)}°   ${acftData.aircraftType}\n`
             // `${acftData.playerName}\n`
     }
 

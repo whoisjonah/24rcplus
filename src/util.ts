@@ -16,6 +16,10 @@ export function altToFL(altitude: number): string {
     return Math.round(altitude/100).toString().padStart(3, "0");
 }
 
+export function padHeading(heading: number): string {
+    return heading.toString().padStart(3, "0");
+}
+
 const RADIANS_CONSTANT = (Math.PI/180);
 export function headingToCartesian(radius: number, degrees: number): number[] {
     const radians = (degrees-90) * RADIANS_CONSTANT;
