@@ -1,6 +1,6 @@
-import { Container, Text } from "pixi.js";
+import { Container, Graphics, Text } from "pixi.js";
 import { AircraftData, Position } from "./types";
-import { altToFL } from "./util";
+import { altToFL, headingToCartesian } from "./util";
 const DEFAULT_TTL = 3
 
 export default class AircraftTrack {
@@ -8,10 +8,11 @@ export default class AircraftTrack {
     basemap: Container;
     acftData: AircraftData;
     prevAlt: number;
-    head: Text;
-    tails: { text: Text, position: Position, ttl: number }[] = [];
+    head: Graphics;
+    tails: { graphic: Graphics, position: Position, ttl: number }[] = [];
     dataBlock: Text;
     ttl = DEFAULT_TTL;
+    ptl: Graphics; // Predicted track line
 
     /**
      * 
@@ -23,15 +24,12 @@ export default class AircraftTrack {
         this.prevAlt = acftData.altitude;
         this.stage = stage;
         this.basemap = basemap;
-        this.head = new Text({
-            text: '*',
-            style: {
-                fontFamily: 'Arial',
-                fontSize: 24,
-                fill: 0xffffff,
-                align: 'center',
-            },
-        });
+
+        this.ptl = new Graphics();
+        this.stage.addChild(this.ptl);
+
+        this.head = new Graphics();
+        this.head.circle(0,0,3).fill(0xFFFFFF);
         this.stage.addChild(this.head);
 
         this.dataBlock = new Text({
@@ -69,52 +67,61 @@ export default class AircraftTrack {
         this.head.position.x += (this.acftData.position.x / 100 - this.basemap.pivot.x) * this.basemap.scale.x;
         this.head.position.y += (this.acftData.position.y / 100 - this.basemap.pivot.y) * this.basemap.scale.x;
 
+        this.ptl.position.copyFrom(this.head)
+
         this.dataBlock.position.copyFrom(this.head);
         this.dataBlock.position.x += 18;
         this.dataBlock.position.y -= 12;
 
         this.tails.forEach(tail => {
-            tail.text.position.copyFrom(this.basemap.position);
-            tail.text.position.x += (tail.position.x / 100 - this.basemap.pivot.x) * this.basemap.scale.x;
-            tail.text.position.y += (tail.position.y / 100 - this.basemap.pivot.y) * this.basemap.scale.x;
+            tail.graphic.position.copyFrom(this.basemap.position);
+            tail.graphic.position.x += (tail.position.x / 100 - this.basemap.pivot.x) * this.basemap.scale.x;
+            tail.graphic.position.y += (tail.position.y / 100 - this.basemap.pivot.y) * this.basemap.scale.x;
         });
+
     }
 
 
     updateData(acftData: AircraftData) {
-        const tailText = new Text({
-            text: "•",
-            style: {
-                fontFamily: 'Cascadia Mono',
-                fontSize: 14,
-                fill: 0xffffff,
-                align: 'left',
-            },
-        });
-        this.stage.addChild(tailText);
+        const tailGraphic = new Graphics();
+        tailGraphic.circle(0,0,3).fill({ h: 222, s: 64, v: 50 });
+        tailGraphic.zIndex = -1;
 
-        this.tails.push({text: tailText, position: this.acftData.position, ttl: 4});
+        this.stage.addChild(tailGraphic);
+
+        this.tails.push({graphic: tailGraphic, position: this.acftData.position, ttl: 4});
+
         this.tails.forEach(tail => {
-           tail.ttl--;
+            tail.graphic.clear();
+            tail.graphic.circle(0,0,3).fill({ h: 222, s: 64, v: 60 + (tail.graphic.zIndex * 15)});
+
+            tail.ttl--;
+            tail.graphic.zIndex--;
             if (tail.ttl <= 0)
-                tail.text.destroy();
+                tail.graphic.destroy();
         });
         this.tails = this.tails.filter(tail => tail.ttl > 0);
 
-        this.head.text = "*";
         this.ttl = DEFAULT_TTL;
         this.acftData = acftData;
         this.formatText();
         this.positionText();
         this.prevAlt = acftData.altitude;
 
+        this.ptl.position.copyFrom(this.head);
+        this.ptl.clear(); // We're not doing this every frame so it's okay
+        if (!acftData.isOnGround) {
+            const [ptlX, ptlY] = headingToCartesian(100, this.acftData.heading);
+            this.ptl.lineTo(ptlX, ptlY);
+            this.ptl.stroke({ color: 0xffffff, pixelLine: true });
+        }
     }
 
     notFound() {
         if (this.acftData.isOnGround)
             this.ttl = 0;
-        else
-            this.head.text = "?"; // Plane disappeared mid-air
+        // else
+        //     this.head.text = "?"; // Plane disappeared mid-air
         this.ttl--;
         console.log(this.ttl);
     }
@@ -122,9 +129,10 @@ export default class AircraftTrack {
     destroy() {
         this.head.destroy(true);
         this.dataBlock.destroy(true);
+        this.ptl.destroy(true);
         this.tails.forEach(tail => {
-            tail.text.destroy(true);
-        })
+            tail.graphic.destroy(true);
+        });
     }
 
 }

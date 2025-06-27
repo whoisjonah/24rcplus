@@ -15,3 +15,11 @@ export function acftCollectionToAcftArray(acftCollection: AircraftCollection): A
 export function altToFL(altitude: number): string {
     return Math.round(altitude/100).toString().padStart(3, "0");
 }
+
+const RADIANS_CONSTANT = (Math.PI/180);
+export function headingToCartesian(radius: number, degrees: number): number[] {
+    const radians = (degrees-90) * RADIANS_CONSTANT;
+    const x = radius * Math.cos(radians);
+    const y = radius * Math.sin(radians);
+    return [x, y];
+}
