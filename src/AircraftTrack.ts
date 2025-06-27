@@ -40,6 +40,7 @@ export default class AircraftTrack {
                 align: 'left',
             },
         });
+        this.updateData(acftData);
         this.formatText();
         this.stage.addChild(this.dataBlock);
     }
@@ -62,12 +63,13 @@ export default class AircraftTrack {
      * Reposition the display's elements relative to the basemap
      * @param basemap Basemap to position the elements relative to.
      */
-    positionText() {
+    positionGraphics() {
         this.head.position.copyFrom(this.basemap.position);
         this.head.position.x += (this.acftData.position.x / 100 - this.basemap.pivot.x) * this.basemap.scale.x;
         this.head.position.y += (this.acftData.position.y / 100 - this.basemap.pivot.y) * this.basemap.scale.x;
 
-        this.ptl.position.copyFrom(this.head)
+        this.ptl.position.copyFrom(this.head);
+        // this.ptl.scale.set(this.basemap.scale.x);
 
         this.dataBlock.position.copyFrom(this.head);
         this.dataBlock.position.x += 18;
@@ -104,17 +106,19 @@ export default class AircraftTrack {
 
         this.ttl = DEFAULT_TTL;
         this.acftData = acftData;
-        this.formatText();
-        this.positionText();
-        this.prevAlt = acftData.altitude;
 
-        this.ptl.position.copyFrom(this.head);
         this.ptl.clear(); // We're not doing this every frame so it's okay
         if (!acftData.isOnGround) {
-            const [ptlX, ptlY] = headingToCartesian(100, this.acftData.heading);
+            // TODO: Make the ptlLength accurate based on acft speed.
+            const ptlLength = 30
+            const [ptlX, ptlY] = headingToCartesian(ptlLength, this.acftData.heading);
             this.ptl.lineTo(ptlX, ptlY);
             this.ptl.stroke({ color: 0xffffff, pixelLine: true });
         }
+        
+        this.formatText();
+        this.positionGraphics();
+        this.prevAlt = acftData.altitude;
     }
 
     notFound() {
