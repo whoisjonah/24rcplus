@@ -17,7 +17,7 @@ export default class AircraftTrack {
     /**
      * 
      * @param acftData AircraftData of the aircraft being tracked
-     * @param stage Stage to draw the aircraft display to
+     * @param stage Stage to draw the aircraft track to
      */
     constructor(acftData: AircraftData, stage: Container, basemap: Container) {
         this.acftData = acftData;
@@ -60,7 +60,7 @@ export default class AircraftTrack {
     }
 
     /**
-     * Reposition the display's elements relative to the basemap
+     * Reposition the track's elements relative to the basemap
      * @param basemap Basemap to position the elements relative to.
      */
     positionGraphics() {
