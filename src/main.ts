@@ -148,8 +148,8 @@ const antialias = false;
         // console.log(basemap.scale.x);
     })
 
-    const pollauthority = "http://localhost:3000";
-    // const pollauthority = "https://24data.ptfs.app";
+    // const pollauthority = "http://localhost:3000";
+    const pollauthority = "https://24data.ptfs.app";
 
     // Update aircraft displays
     const tick = () => {
