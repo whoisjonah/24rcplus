@@ -4,6 +4,9 @@ import { SVGParser } from "./lineParser/SVGParser";
 import { AircraftCollection } from "./types";
 import AircraftTrack from "./AircraftTrack";
 
+// const pollAuthority = "http://localhost:3000";
+const pollAuthority = "https://24data.ptfs.app";
+
 /** aircraft collection to aircraft array */
 const ac2aa = acftCollectionToAcftArray;
 
@@ -13,6 +16,8 @@ const ac2aa = acftCollectionToAcftArray;
 // };
 // const gameSize = {x: 96355, y: 92030};
 const antialias = false;
+
+let tickInterval: number;
 
 (async () => {
     // Create a new application
@@ -33,21 +38,6 @@ const antialias = false;
     basemap.position.set(app.screen.width / 2, app.screen.height / 2);
     app.stage.addChild(basemap);
     app.stage.addChild(trackContainer);
-
-
-    // const expensiveAsset = await Assets.load<Texture>("/assets/expensive.png");
-    // const expensiveSprite = new Sprite(expensiveAsset);
-    // const expensiveContainer = new Container();
-
-    // expensiveSprite.scale.x = (gameSize.x / expensiveSprite.width/100)
-    // expensiveSprite.scale.y = (gameSize.y / expensiveSprite.height/100)
-    // expensiveContainer.addChild(expensiveSprite);
-
-    // expensiveContainer.pivot.set(-gameCoords.top_left.x/100, -gameCoords.top_left.y/100);
-    // // expensiveContainer.position.set(gameCoords.top_left.x/100, gameCoords.top_left.y/100);
-    // basemap.addChild(expensiveContainer);
-
-
 
     const coastAsset: GraphicsContext = await Assets.load({
         src: "/assets/coast.svg",
@@ -117,6 +107,29 @@ const antialias = false;
     app.stage.on('touchstart', () => app.stage.on('pointermove', dragmap));
     app.stage.on('touchend', () => app.stage.off('pointermove', dragmap));
 
+    // Event switching
+    const pollRoutes = ["/acft-data", "/acft-data/event"]
+    let activeRoute = 0;
+    let lastSwitchTime = Date.now();
+
+    window.addEventListener("keydown", ev => {
+        if (ev.key === "e") {
+            const now = Date.now();
+            if (now - lastSwitchTime < 1000)
+                return; // 1s cooldown on switching event mode.
+            lastSwitchTime = now;
+            acftTracks.forEach(track => {
+                track.destroy();
+            });
+            acftTracks = [];
+            activeRoute = (activeRoute + 1) % (pollRoutes.length);
+
+            clearInterval(tickInterval);
+            tick();
+            tickInterval = setInterval(tick, 3000);
+        }
+    });
+
     let acftTracks: AircraftTrack[] = [];
 
     function positionGraphics() {
@@ -148,12 +161,9 @@ const antialias = false;
         // console.log(basemap.scale.x);
     })
 
-    // const pollauthority = "http://localhost:3000";
-    const pollauthority = "https://24data.ptfs.app";
-
     // Update aircraft tracks
     const tick = () => {
-        fetch(`${pollauthority}/acft-data`).then(async (res) => {
+        fetch(`${pollAuthority}${pollRoutes[activeRoute]}`).then(async (res) => {
             const acftCollection: AircraftCollection = await res.json();
             const acftDatas = ac2aa(acftCollection);
 
@@ -162,7 +172,7 @@ const antialias = false;
                 // If the track has new data
                 const matchingData = acftDatas.find(acftData => acftData.playerName === track.acftData.playerName);
                 if (matchingData) {
-                    track.updateData(matchingData)
+                    track.updateData(matchingData);
                 }
                 else {
                     // The track has no new data
@@ -195,6 +205,6 @@ const antialias = false;
     };
 
     tick();
-    setInterval(tick, 3000)
+    tickInterval = setInterval(tick, 3000);
 
 })();
