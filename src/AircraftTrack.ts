@@ -1,7 +1,7 @@
 import { Container, Graphics, Text } from "pixi.js";
 import { AircraftData, Position } from "./types";
 import { altToFL, headingToCartesian, padHeading } from "./util";
-const DEFAULT_TTL = 3
+const DEFAULT_TTL = 3;
 
 export default class AircraftTrack {
     stage: Container;
@@ -34,7 +34,7 @@ export default class AircraftTrack {
 
         this.dataBlock = new Text({
             style: {
-                fontFamily: 'Cascadia Mono',
+                fontFamily: 'ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace',
                 fontSize: 14,
                 fill: 0xffffff,
                 align: 'left',
@@ -137,6 +137,7 @@ export default class AircraftTrack {
         this.tails.forEach(tail => {
             tail.graphic.destroy(true);
         });
+        this.tails = [];
     }
 
 }
