@@ -5,7 +5,7 @@ import { AircraftCollection } from "./types";
 import AircraftTrack from "./AircraftTrack";
 
 // const pollAuthority = "http://localhost:3000";
-const pollAuthority = "https://24data.ptfs.app";
+const pollAuthority = "https://data-temp.ptfs.app";
 
 /** aircraft collection to aircraft array */
 const ac2aa = acftCollectionToAcftArray;
