@@ -54,7 +54,7 @@ export default class AircraftTrack {
 
         this.dataBlock.text =
             `${acftData.callsign}\n` +
-            `FL${altToFL(acftData.altitude)}${altitudeArrow} ${Math.abs(acftData.speed)}kt\n` +
+            `FL${altToFL(acftData.altitude)}${altitudeArrow} ${Math.floor(Math.abs(acftData.groundSpeed))}kt\n` +
             `${padHeading(acftData.heading)}°   ${acftData.aircraftType}\n`
             // `${acftData.playerName}\n`
     }
@@ -69,7 +69,7 @@ export default class AircraftTrack {
         this.head.position.y += (this.acftData.position.y / 100 - this.basemap.pivot.y) * this.basemap.scale.x;
 
         this.ptl.position.copyFrom(this.head);
-        // this.ptl.scale.set(this.basemap.scale.x);
+        this.ptl.scale.set(this.basemap.scale.x);
 
         this.dataBlock.position.copyFrom(this.head);
         this.dataBlock.position.x += 18;
@@ -109,9 +109,9 @@ export default class AircraftTrack {
 
         this.ptl.clear(); // We're not doing this every frame so it's okay
         if (!acftData.isOnGround) {
-            // TODO: Make the ptlLength accurate based on acft speed.
-            const ptlLength = 30
-            const [ptlX, ptlY] = headingToCartesian(ptlLength, this.acftData.heading);
+            // Magic number found through comparing coordinates at set speed at set interval. TODO: find what equation produces this number.
+            const ptlLength = 0.3256 * acftData.groundSpeed
+            const [ptlX, ptlY] = headingToCartesian(ptlLength, acftData.heading);
             this.ptl.lineTo(ptlX, ptlY);
             this.ptl.stroke({ color: 0xffffff, pixelLine: true });
         }
