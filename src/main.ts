@@ -3,6 +3,7 @@ import { acftCollectionToAcftArray } from "./util";
 import { SVGParser } from "./lineParser/SVGParser";
 import { AircraftCollection } from "./types";
 import AircraftTrack from "./AircraftTrack";
+import config from "./config";
 
 // const pollAuthority = "http://localhost:3000";
 const pollAuthority = "https://data-temp.ptfs.app";
@@ -113,6 +114,7 @@ let tickInterval: number;
     let lastSwitchTime = Date.now();
 
     window.addEventListener("keydown", ev => {
+        // Switch polling source between event and normal server
         if (ev.key === "e") {
             const now = Date.now();
             if (now - lastSwitchTime < 1000)
@@ -127,6 +129,11 @@ let tickInterval: number;
             clearInterval(tickInterval);
             tick();
             tickInterval = setInterval(tick, 3000);
+        }
+        // Toggle for Predicted track lines
+        else if (ev.key === "p") {
+            config.showPTL = !config.showPTL;
+            positionGraphics();
         }
     });
 

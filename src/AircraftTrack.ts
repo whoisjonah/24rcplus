@@ -1,6 +1,7 @@
 import { Container, Graphics, Text } from "pixi.js";
 import { AircraftData, Position } from "./types";
 import { altToFL, headingToCartesian, padHeading } from "./util";
+import config from "./config";
 const DEFAULT_TTL = 3;
 
 export default class AircraftTrack {
@@ -70,6 +71,7 @@ export default class AircraftTrack {
 
         this.ptl.position.copyFrom(this.head);
         this.ptl.scale.set(this.basemap.scale.x);
+        
 
         this.dataBlock.position.copyFrom(this.head);
         this.dataBlock.position.x += 18;
@@ -108,7 +110,7 @@ export default class AircraftTrack {
         this.acftData = acftData;
 
         this.ptl.clear(); // We're not doing this every frame so it's okay
-        if (!acftData.isOnGround) {
+        if (!acftData.isOnGround && config.showPTL) {
             // Magic number found through comparing coordinates at set speed at set interval. TODO: find what equation produces this number.
             const ptlLength = 0.3256 * acftData.groundSpeed
             const [ptlX, ptlY] = headingToCartesian(ptlLength, acftData.heading);
