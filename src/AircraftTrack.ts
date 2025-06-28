@@ -55,7 +55,7 @@ export default class AircraftTrack {
 
         this.dataBlock.text =
             `${acftData.callsign}\n` +
-            `FL${altToFL(acftData.altitude)}${altitudeArrow} ${Math.floor(Math.abs(acftData.groundSpeed))}kt\n` +
+            `FL${altToFL(acftData.altitude)}${altitudeArrow} ${Math.floor(Math.abs(acftData.speed))}kt\n` +
             `${padHeading(acftData.heading)}°   ${acftData.aircraftType}\n`
             // `${acftData.playerName}\n`
     }
