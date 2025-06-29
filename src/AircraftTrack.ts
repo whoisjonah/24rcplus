@@ -4,7 +4,7 @@ import { altToFL, headingToCartesian, padHeading } from "./util";
 import config from "./config";
 import AirlineMapJson from "./AirlineMap.json";
 import AcftTypeMapJson from "./AcftTypeMap.json";
-import GAPrefixes from "./GAPrefixes.json";
+// import GAPrefixes from "./GAPrefixes.json";
 const DEFAULT_TTL = 3;
 
 const AirlineMap = new Map(Object.entries(AirlineMapJson));
