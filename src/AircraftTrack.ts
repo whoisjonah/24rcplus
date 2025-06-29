@@ -2,7 +2,30 @@ import { Container, Graphics, Text } from "pixi.js";
 import { AircraftData, Position } from "./types";
 import { altToFL, headingToCartesian, padHeading } from "./util";
 import config from "./config";
+import AirlineMapJson from "./AirlineMap.json";
+import AcftTypeMapJson from "./AcftTypeMap.json";
+import GAPrefixes from "./GAPrefixes.json";
 const DEFAULT_TTL = 3;
+
+const AirlineMap = new Map(Object.entries(AirlineMapJson));
+const AcftTypeMap = new Map(Object.entries(AcftTypeMapJson));
+
+function callsignToIcao(callsign: string) {
+    const callsignParts = callsign.split("-");
+    const carrier = callsignParts[0];
+    const number = callsignParts[1];
+    const icaoCarrier = AirlineMap.get(carrier);
+    if (!icaoCarrier)
+        return;
+    return `${icaoCarrier}${number}`;
+}
+
+function callsignFallback(callsign: string) {
+    const callsignParts = callsign.split("-");
+    const carrier = callsignParts[0];
+    const number = callsignParts[1];
+    return `${carrier.toUpperCase()}${number}`;
+}
 
 export default class AircraftTrack {
     stage: Container;
@@ -54,9 +77,9 @@ export default class AircraftTrack {
         const altitudeArrow = (altitudeDelta > threasholdDelta) ? "↑" : (altitudeDelta < -threasholdDelta) ? "↓" : " "
 
         this.dataBlock.text =
-            `${acftData.callsign}\n` +
+            `${callsignToIcao(acftData.callsign) || callsignFallback(acftData.callsign)}\n` +
             `FL${altToFL(acftData.altitude)}${altitudeArrow} ${Math.floor(Math.abs(acftData.speed))}kt\n` +
-            `${padHeading(acftData.heading)}°   ${acftData.aircraftType}\n`
+            `${padHeading(acftData.heading)}°   ${AcftTypeMap.get(acftData.aircraftType)||"????"}\n`
             // `${acftData.playerName}\n`
     }
 
@@ -84,7 +107,6 @@ export default class AircraftTrack {
         });
 
     }
-
 
     updateData(acftData: AircraftData) {
         const tailGraphic = new Graphics();
