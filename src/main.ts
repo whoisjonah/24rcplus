@@ -1,9 +1,11 @@
 import { Application, Assets, Container, FederatedPointerEvent, Graphics, GraphicsContext } from "pixi.js";
+import 'pixi.js/math-extras';
 import { acftCollectionToAcftArray } from "./util";
 import { SVGParser } from "./lineParser/SVGParser";
 import { AircraftCollection } from "./types";
 import AircraftTrack from "./AircraftTrack";
 import config from "./config";
+import DistanceTool from "./DistanceTool";
 
 // const pollAuthority = "http://localhost:3000";
 const pollAuthority = "https://data-temp.ptfs.app";
@@ -57,7 +59,7 @@ let tickInterval: number;
 
     // const Approach25R = new Graphics();
     // Approach25R.setStrokeStyle({ pixelLine: true})
-    // // session.paths.forEach(path => {
+    // session.paths.forEach(path => {
     //     Approach25R
     //         .path(path)
     //         .stroke();
@@ -108,6 +110,19 @@ let tickInterval: number;
     app.stage.on('touchstart', () => app.stage.on('pointermove', dragmap));
     app.stage.on('touchend', () => app.stage.off('pointermove', dragmap));
 
+    const distanceTool = new DistanceTool(trackContainer, basemap);
+    const distanceToolMouseMove = (e: FederatedPointerEvent) => distanceTool.mouseMove(e)
+
+    // Distance tool stuff
+    app.stage.on("mousedown", () => {
+        distanceTool.init();
+        app.stage.on('pointermove', distanceToolMouseMove);
+    });
+
+    app.stage.on("mouseup", () => {
+        app.stage.off('pointermove', distanceToolMouseMove);
+    });
+
     // Event switching
     const pollRoutes = ["/acft-data", "/acft-data/event"]
     let activeRoute = 0;
@@ -141,6 +156,7 @@ let tickInterval: number;
 
     function positionGraphics() {
         acftTracks.forEach(acftTrack => acftTrack.positionGraphics());
+        distanceTool.positionGraphics();
     }
 
     app.renderer.on("resize", (w, h) => {
