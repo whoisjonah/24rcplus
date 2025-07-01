@@ -116,24 +116,31 @@ let tickInterval: number;
 
     let doubleClickTime = 0;
     let doubleClickPoint = new Point();
+    let disableMove = false;
+    let destroy = false;
 
     app.stage.on("mousedown", e => {
-        distanceTool.destroy();
+        if (destroy) {
+            distanceTool.destroy();
+            destroy = false;
+        }
+        if (disableMove) {
+            app.stage.off('pointermove', distanceToolMouseMove);
+            disableMove = false;
+            destroy = true;
+        }
         const now = Date.now();
         const clickPoint = new Point(e.x, e.y);
 
         const distance = pointsToDistance(doubleClickPoint, clickPoint);
 
-        if (now - doubleClickTime > 500 || distance > 20) {
+        if (now - doubleClickTime > 300 || distance > 200) {
             doubleClickTime = now;
             doubleClickPoint = clickPoint;
             return;
         }
         app.stage.on('pointermove', distanceToolMouseMove);
-    });
-
-    app.stage.on("mouseup", () => {
-        app.stage.off('pointermove', distanceToolMouseMove);
+        disableMove = true;
     });
 
     // Event switching
