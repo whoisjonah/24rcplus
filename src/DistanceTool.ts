@@ -42,10 +42,6 @@ export default class DistanceTool {
         }
     }
 
-    init() {
-        this.destroy();
-    }
-
     mouseMove(e: FederatedPointerEvent) {
         const gameCoords = e.getLocalPosition(this.basemap);
 

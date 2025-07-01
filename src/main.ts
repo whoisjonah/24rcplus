@@ -1,6 +1,6 @@
-import { Application, Assets, Container, FederatedPointerEvent, Graphics, GraphicsContext } from "pixi.js";
+import { Application, Assets, Container, FederatedPointerEvent, Graphics, GraphicsContext, Point } from "pixi.js";
 import 'pixi.js/math-extras';
-import { acftCollectionToAcftArray } from "./util";
+import { acftCollectionToAcftArray, pointsToDistance } from "./util";
 import { SVGParser } from "./lineParser/SVGParser";
 import { AircraftCollection } from "./types";
 import AircraftTrack from "./AircraftTrack";
@@ -110,12 +110,25 @@ let tickInterval: number;
     app.stage.on('touchstart', () => app.stage.on('pointermove', dragmap));
     app.stage.on('touchend', () => app.stage.off('pointermove', dragmap));
 
-    const distanceTool = new DistanceTool(trackContainer, basemap);
-    const distanceToolMouseMove = (e: FederatedPointerEvent) => distanceTool.mouseMove(e)
-
     // Distance tool stuff
-    app.stage.on("mousedown", () => {
-        distanceTool.init();
+    const distanceTool = new DistanceTool(trackContainer, basemap);
+    const distanceToolMouseMove = (e: FederatedPointerEvent) => distanceTool.mouseMove(e);
+
+    let doubleClickTime = 0;
+    let doubleClickPoint = new Point();
+
+    app.stage.on("mousedown", e => {
+        distanceTool.destroy();
+        const now = Date.now();
+        const clickPoint = new Point(e.x, e.y);
+
+        const distance = pointsToDistance(doubleClickPoint, clickPoint);
+
+        if (now - doubleClickTime > 500 || distance > 20) {
+            doubleClickTime = now;
+            doubleClickPoint = clickPoint;
+            return;
+        }
         app.stage.on('pointermove', distanceToolMouseMove);
     });
 
