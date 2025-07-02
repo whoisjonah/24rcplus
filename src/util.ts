@@ -41,13 +41,6 @@ export function pointsToHeading(p1: Point, p2: Point) {
 }
 
 export function pointsToDistance(p1: Point, p2: Point) {
-    const x1 = p1.x;
-    const y1 = p1.y
-    const x2 = p2.x;
-    const y2 = p2.y;
-
-    const a = x2 - x1;
-    const b = y2 - y1;
-    const c = Math.sqrt(a*a + b*b);
-    return c;
+    const normalised = p1.subtract(p2);
+    return normalised.magnitude();
 }
