@@ -1,12 +1,13 @@
 import { Container, Graphics, Text, TextOptions, TextStyleAlign } from "pixi.js";
 import { FederatedPointerEvent, Point } from "pixi.js";
-import { padHeading, pointsToDistance, pointsToHeading, roundDp } from "./util";
+import { getOppHeading, padHeading, pointsToDistance, pointsToHeading, roundDp, vectorToPoint } from "./util";
 
 export default class DistanceTool {
     stage: Container;
     basemap: Container;
     start?: Point;
     end?: Point;
+    heading?: number;
     line?: Graphics;
     startHdgTxt?: Text;
     endHdgTxt?: Text;
@@ -23,21 +24,62 @@ export default class DistanceTool {
             this.line?.pivot.copyFrom(this.basemap.pivot);
             this.line?.scale.copyFrom(this.basemap.scale);
             
-            if (this.startHdgTxt && this.start) {
-                this.startHdgTxt.pivot = this.basemap.pivot.multiplyScalar(this.basemap.scale.x);
-                this.startHdgTxt.position = this.line.position.add(this.start.multiplyScalar(this.basemap.scale.x));
-            }
+            if (!this.start || !this.end || !this.heading || !this.startHdgTxt || !this.endHdgTxt || !this.distanceTxt)
+                return;
 
-            if (this.endHdgTxt && this.end) {
-                this.endHdgTxt.pivot = this.basemap.pivot.multiplyScalar(this.basemap.scale.x);
-                this.endHdgTxt.position = this.line.position.add(this.end.multiplyScalar(this.basemap.scale.x));
+            {
+                let position = this.line.position.add(this.start.multiplyScalar(this.basemap.scale.x));
+                position = position.subtract(this.basemap.pivot.multiplyScalar(this.basemap.scale.x));
+
+                let offset = vectorToPoint(20, getOppHeading(this.heading));
+                const textSize = this.startHdgTxt.getSize();
+                offset.x -= textSize.width/2;
+                offset.y -= textSize.height/2;
+                this.startHdgTxt.position = position.add(offset);
             }
-            
-            if (this.distanceTxt && this.start && this.end) {
+            {
+                let position = this.line.position.add(this.end.multiplyScalar(this.basemap.scale.x));
+                position = position.subtract(this.basemap.pivot.multiplyScalar(this.basemap.scale.x));
+
+                let offset = vectorToPoint(20, this.heading);
+                const textSize = this.endHdgTxt.getSize();
+                offset.x -= textSize.width/2;
+                offset.y -= textSize.height/2;
+                this.endHdgTxt.position = position.add(offset);
+            }
+            {
+                // Algorithm to determine the position and angle of the Nautical Mile text.
                 const midpoint = this.start.add(this.end.subtract(this.start).multiplyScalar(0.5));
 
-                this.distanceTxt.pivot = this.basemap.pivot.multiplyScalar(this.basemap.scale.x);
-                this.distanceTxt.position = this.line.position.add(midpoint.multiplyScalar(this.basemap.scale.x));
+                let position = this.line.position.add(midpoint.multiplyScalar(this.basemap.scale.x));
+                position = position.subtract(this.basemap.pivot.multiplyScalar(this.basemap.scale.x));
+
+                const textSize = this.distanceTxt.getSize();
+
+                if (this.heading < 45/2) {
+                    this.distanceTxt.angle = this.heading;
+                    this.distanceTxt.pivot.set(0, textSize.height/2);
+                    position = position.add(vectorToPoint(5, this.heading + 90));
+                }
+                else if (this.heading < 45+90+45/2) {
+                    this.distanceTxt.angle = this.heading - 90;
+                    this.distanceTxt.pivot.set(textSize.width/2, 0);
+                }
+                else if (this.heading < 45+180-45/2) {
+                    this.distanceTxt.angle = this.heading - 180;
+                    this.distanceTxt.pivot.set(0, textSize.height/2);
+                    position = position.add(vectorToPoint(-5, this.heading + 90));
+                }
+                else if (this.heading < 45+270+45/2) {
+                    this.distanceTxt.angle = this.heading - 270;
+                    this.distanceTxt.pivot.set(textSize.width/2, 0);
+                }
+                else {
+                    this.distanceTxt.angle = this.heading;
+                    this.distanceTxt.pivot.set(0, textSize.height/2);
+                    position = position.add(vectorToPoint(5, this.heading + 90));
+                }
+                this.distanceTxt.position = position;
             }
         }
     }
@@ -79,7 +121,7 @@ export default class DistanceTool {
         const d = pointsToDistance(this.start, this.end) / 33.07144; // (studs/100) to NM
         const distance = roundDp(d, 1); // round distance to 1dp
         const hdg = pointsToHeading(this.start, this.end);
-        const oppHdg = (hdg + 180) % 360;
+        const oppHdg = getOppHeading(hdg);
 
         const startHeading = padHeading(Math.round(hdg));
         const endHeading = padHeading(Math.round(oppHdg));
@@ -104,16 +146,17 @@ export default class DistanceTool {
             this.stage.addChild(this.distanceTxt);
         }
 
+        this.heading = hdg;
         this.startHdgTxt.text = startHeading;
         this.endHdgTxt.text = endHeading;
         this.distanceTxt.text = `${distance}NM`;
         this.positionGraphics();
-        console.log(hdg, oppHdg, distance);
     }
 
     destroy() {
         this.start = undefined;
         this.end = undefined;
+        this.heading = undefined;
 
         this.line?.destroy();
         this.line = undefined;

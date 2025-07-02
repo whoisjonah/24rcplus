@@ -29,6 +29,10 @@ export function headingToCartesian(radius: number, degrees: number): number[] {
     return [x, y];
 }
 
+export function vectorToPoint(radius: number, degrees: number) {
+    return new Point(...headingToCartesian(radius, degrees));
+}
+
 export function pointsToHeading(p1: Point, p2: Point) {
     const x1 = p1.x;
     const y1 = p1.y
