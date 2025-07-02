@@ -44,3 +44,7 @@ export function pointsToDistance(p1: Point, p2: Point) {
     const normalised = p1.subtract(p2);
     return normalised.magnitude();
 }
+
+export function getOppHeading(hdg: number) {
+    return (hdg + 180) % 360;
+}
