@@ -128,6 +128,7 @@ let tickInterval: number;
             app.stage.off('pointermove', distanceToolMouseMove);
             disableMove = false;
             destroy = true;
+            return;
         }
         const now = Date.now();
         const clickPoint = new Point(e.x, e.y);
