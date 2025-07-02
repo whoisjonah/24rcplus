@@ -1,6 +1,6 @@
 import { Container, Graphics, Text, TextOptions, TextStyleAlign } from "pixi.js";
 import { FederatedPointerEvent, Point } from "pixi.js";
-import { getOppHeading, padHeading, pointsToDistance, pointsToHeading, roundDp, vectorToPoint } from "./util";
+import { getOppHeading, padHeading, pointsToDistance, pointsToHeading, roundDp, sizeToPoint, vectorToPoint } from "./util";
 
 export default class DistanceTool {
     stage: Container;
@@ -27,60 +27,53 @@ export default class DistanceTool {
             if (!this.start || !this.end || !this.heading || !this.startHdgTxt || !this.endHdgTxt || !this.distanceTxt)
                 return;
 
-            {
-                let position = this.line.position.add(this.start.multiplyScalar(this.basemap.scale.x));
-                position = position.subtract(this.basemap.pivot.multiplyScalar(this.basemap.scale.x));
+            // Correct position of heading texts 
+            this.startHdgTxt.position = this.basemap.position
+                .add(this.start.multiplyScalar(this.basemap.scale.x))
+                .subtract(this.basemap.pivot.multiplyScalar(this.basemap.scale.x))
+                .add(vectorToPoint(20, getOppHeading(this.heading))) // Apply vector of 20px in the opposite heading direction
+                .subtract(sizeToPoint(this.endHdgTxt.getSize()).multiplyScalar(0.5)); // Centrepoint of text
 
-                let offset = vectorToPoint(20, getOppHeading(this.heading));
-                const textSize = this.startHdgTxt.getSize();
-                offset.x -= textSize.width/2;
-                offset.y -= textSize.height/2;
-                this.startHdgTxt.position = position.add(offset);
+            this.endHdgTxt.position = this.basemap.position
+                .add(this.end.multiplyScalar(this.basemap.scale.x))
+                .subtract(this.basemap.pivot.multiplyScalar(this.basemap.scale.x))
+                .add(vectorToPoint(20, this.heading)) // Apply vector of 20px in the heading direction
+                .subtract(sizeToPoint(this.endHdgTxt.getSize()).multiplyScalar(0.5)); // Centrepoint of text
+
+            // Algorithm to determine the position and angle of the Nautical Mile text.
+            const midpoint = this.start.add(this.end.subtract(this.start).multiplyScalar(0.5));
+
+            let position = this.basemap.position
+                .add(midpoint.multiplyScalar(this.basemap.scale.x))
+                .subtract(this.basemap.pivot.multiplyScalar(this.basemap.scale.x));
+
+            const textSize = this.distanceTxt.getSize();
+
+            if (this.heading < 22.5) {
+                this.distanceTxt.angle = this.heading;
+                this.distanceTxt.pivot.set(0, textSize.height/2);
+                position = position.add(vectorToPoint(5, this.heading + 90));
             }
-            {
-                let position = this.line.position.add(this.end.multiplyScalar(this.basemap.scale.x));
-                position = position.subtract(this.basemap.pivot.multiplyScalar(this.basemap.scale.x));
-
-                let offset = vectorToPoint(20, this.heading);
-                const textSize = this.endHdgTxt.getSize();
-                offset.x -= textSize.width/2;
-                offset.y -= textSize.height/2;
-                this.endHdgTxt.position = position.add(offset);
+            else 
+            if (this.heading < 180-22.5) {
+                this.distanceTxt.angle = this.heading - 90;
+                this.distanceTxt.pivot.set(textSize.width/2, 0);
             }
-            {
-                // Algorithm to determine the position and angle of the Nautical Mile text.
-                const midpoint = this.start.add(this.end.subtract(this.start).multiplyScalar(0.5));
-
-                let position = this.line.position.add(midpoint.multiplyScalar(this.basemap.scale.x));
-                position = position.subtract(this.basemap.pivot.multiplyScalar(this.basemap.scale.x));
-
-                const textSize = this.distanceTxt.getSize();
-
-                if (this.heading < 45/2) {
-                    this.distanceTxt.angle = this.heading;
-                    this.distanceTxt.pivot.set(0, textSize.height/2);
-                    position = position.add(vectorToPoint(5, this.heading + 90));
-                }
-                else if (this.heading < 45+90+45/2) {
-                    this.distanceTxt.angle = this.heading - 90;
-                    this.distanceTxt.pivot.set(textSize.width/2, 0);
-                }
-                else if (this.heading < 45+180-45/2) {
-                    this.distanceTxt.angle = this.heading - 180;
-                    this.distanceTxt.pivot.set(0, textSize.height/2);
-                    position = position.add(vectorToPoint(-5, this.heading + 90));
-                }
-                else if (this.heading < 45+270+45/2) {
-                    this.distanceTxt.angle = this.heading - 270;
-                    this.distanceTxt.pivot.set(textSize.width/2, 0);
-                }
-                else {
-                    this.distanceTxt.angle = this.heading;
-                    this.distanceTxt.pivot.set(0, textSize.height/2);
-                    position = position.add(vectorToPoint(5, this.heading + 90));
-                }
-                this.distanceTxt.position = position;
+            else if (this.heading < 180+22.5) {
+                this.distanceTxt.angle = this.heading - 180;
+                this.distanceTxt.pivot.set(0, textSize.height/2);
+                position = position.add(vectorToPoint(-5, this.heading + 90));
             }
+            else if (this.heading < 360-22.5) {
+                this.distanceTxt.angle = this.heading - 270;
+                this.distanceTxt.pivot.set(textSize.width/2, 0);
+            }
+            else {
+                this.distanceTxt.angle = this.heading;
+                this.distanceTxt.pivot.set(0, textSize.height/2);
+                position = position.add(vectorToPoint(5, this.heading + 90));
+            }
+            this.distanceTxt.position = position;
         }
     }
 

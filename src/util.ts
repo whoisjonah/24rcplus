@@ -1,4 +1,4 @@
-import { Point } from "pixi.js";
+import { Point, Size } from "pixi.js";
 import { AircraftCollection, AircraftData } from "./types";
 
 export function roundDp(n: number, dp: number = 0): number {
@@ -19,6 +19,10 @@ export function altToFL(altitude: number): string {
 
 export function padHeading(heading: number): string {
     return heading.toString().padStart(3, "0");
+}
+
+export function sizeToPoint(size: Size) {
+    return new Point(size.width, size.height);
 }
 
 const RADIANS_CONSTANT = (Math.PI/180);
