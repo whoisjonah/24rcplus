@@ -126,6 +126,7 @@ let tickInterval: number;
         }
         if (disableMove) {
             app.stage.off('pointermove', distanceToolMouseMove);
+            app.stage.cursor = 'auto';
             disableMove = false;
             destroy = true;
             return;
@@ -141,6 +142,7 @@ let tickInterval: number;
             return;
         }
         app.stage.on('pointermove', distanceToolMouseMove);
+        app.stage.cursor = 'crosshair';
         disableMove = true;
     });
 
