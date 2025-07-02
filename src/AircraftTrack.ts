@@ -5,7 +5,8 @@ import config from "./config";
 import AirlineMapJson from "./AirlineMap.json";
 import AcftTypeMapJson from "./AcftTypeMap.json";
 // import GAPrefixes from "./GAPrefixes.json";
-const DEFAULT_TTL = 3;
+const ACFT_TTL = 3;
+const TAIL_TTL = 4;
 
 const AirlineMap = new Map(Object.entries(AirlineMapJson));
 const AcftTypeMap = new Map(Object.entries(AcftTypeMapJson));
@@ -35,7 +36,7 @@ export default class AircraftTrack {
     head: Graphics;
     tails: { graphic: Graphics, position: Position, ttl: number }[] = [];
     dataBlock: Text;
-    ttl = DEFAULT_TTL;
+    ttl = ACFT_TTL;
     ptl: Graphics; // Predicted track line
 
     /**
@@ -115,11 +116,11 @@ export default class AircraftTrack {
 
         this.stage.addChild(tailGraphic);
 
-        this.tails.push({graphic: tailGraphic, position: this.acftData.position, ttl: 4});
+        this.tails.push({ graphic: tailGraphic, position: this.acftData.position, ttl: TAIL_TTL });
 
         this.tails.forEach(tail => {
             tail.graphic.clear();
-            tail.graphic.circle(0,0,3).fill({ h: 222, s: 64, v: 60 + (tail.graphic.zIndex * 15)});
+            tail.graphic.circle(0,0,3).fill({ h: 222, s: 64, v: 50 / (TAIL_TTL + 1 - tail.ttl)});
 
             tail.ttl--;
             tail.graphic.zIndex--;
@@ -128,7 +129,7 @@ export default class AircraftTrack {
         });
         this.tails = this.tails.filter(tail => tail.ttl > 0);
 
-        this.ttl = DEFAULT_TTL;
+        this.ttl = ACFT_TTL;
         this.acftData = acftData;
 
         this.ptl.clear(); // We're not doing this every frame so it's okay
