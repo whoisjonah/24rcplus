@@ -1,11 +1,11 @@
-import { Application, Assets, Container, FederatedPointerEvent, Graphics, GraphicsContext, Point } from "pixi.js";
+import { Application, Container, FederatedPointerEvent,  Point } from "pixi.js";
 import 'pixi.js/math-extras';
 import { acftCollectionToAcftArray, pointsToDistance } from "./util";
-import { SVGParser } from "./lineParser/SVGParser";
 import { AircraftCollection } from "./types";
 import AircraftTrack from "./AircraftTrack";
 import config from "./config";
 import DistanceTool from "./DistanceTool";
+import { AssetManager } from "./AssetManager";
 
 // const pollAuthority = "http://localhost:3000";
 const pollAuthority = "https://e04goo4wsggkcs44808cscco.ptfs.app";
@@ -36,72 +36,17 @@ let tickInterval: number;
     document.getElementById("pixi-container")!.appendChild(app.canvas);
     
     const basemap = new Container();
-
     const trackContainer = new Container();
+
     basemap.position.set(app.screen.width / 2, app.screen.height / 2);
     app.stage.addChild(basemap);
     app.stage.addChild(trackContainer);
 
-    const coastAsset: GraphicsContext = await Assets.load({
-        src: "/assets/coast.svg",
-        data: { parseAsGraphicsContext: true },
-    });
-    const coast = new Graphics(coastAsset)
-        .stroke({color: 0xFFFF00, pixelLine: true, alpha: 0.4});
-    const coastContainer = new Container();
-    coastContainer.addChild(coast);
-    basemap.addChild(coastContainer);
+    const assetManager = new AssetManager(basemap);
 
-    // const e = await fetch("/assets/IRFD/25R final.svg")
-    // const f = await e.text();
-
-    // const session = SVGParser(f, new GraphicsContext());
-
-    // const Approach25R = new Graphics();
-    // Approach25R.setStrokeStyle({ pixelLine: true})
-    // session.paths.forEach(path => {
-    //     Approach25R
-    //         .path(path)
-    //         .stroke();
-    // })
-
-    // basemap.addChild(Approach25R);
-    // Approach25R.alpha = 0.4;
-    // Approach25R.tint = 0xFFFF00;
-
-
-    const groundSourceReq = await fetch("/assets/all-grounds.svg")
-    const groundSource = await groundSourceReq.text();
-
-    const groundSvgSess = SVGParser(groundSource, new GraphicsContext());
-
-    const allGrounds = new Graphics();
-    allGrounds.setStrokeStyle({ pixelLine: true });
-    groundSvgSess.paths.forEach(path => {
-        allGrounds
-            .path(path)
-            .stroke();
-    });
-
-    basemap.addChild(allGrounds);
-    allGrounds.alpha = 0.2;
-
-    const boundariesSourceReq = await fetch("/assets/boundaries.svg")
-    const boundariesSource = await boundariesSourceReq.text();
-
-    const boundariesSess = SVGParser(boundariesSource, new GraphicsContext());
-
-    const boundaries = new Graphics();
-    boundaries.setStrokeStyle({ pixelLine: true });
-    boundariesSess.paths.forEach(path => {
-        boundaries
-            .path(path)
-            .stroke();
-    });
-
-    basemap.addChild(boundaries);
-    boundaries.alpha = 0.2;
-
+    assetManager.loadAsset("Coast");
+    assetManager.loadAsset("All Grounds");
+    assetManager.loadAsset("Airspace Boundaries");
 
     app.stage.eventMode = 'static';
     app.stage.hitArea = app.screen;
