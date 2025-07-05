@@ -154,7 +154,10 @@ let tickInterval: number;
 
     // Update aircraft tracks
     const tick = () => {
-        fetch(`${pollAuthority}${pollRoutes[activeRoute]}`).then(async (res) => {
+        fetch(
+            `${pollAuthority}${pollRoutes[activeRoute]}`,
+            { credentials: 'include' }
+        ).then(async (res) => {
             const acftCollection: AircraftCollection = await res.json();
             const acftDatas = ac2aa(acftCollection);
 
