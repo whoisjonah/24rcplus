@@ -8,7 +8,7 @@ import DistanceTool from "./DistanceTool";
 import { AssetManager } from "./AssetManager";
 
 // const pollAuthority = "http://localhost:3000";
-const pollAuthority = "https://e04goo4wsggkcs44808cscco.ptfs.app";
+const pollAuthority = "https://data-temp.ptfs.app";
 
 /** aircraft collection to aircraft array */
 const ac2aa = acftCollectionToAcftArray;
