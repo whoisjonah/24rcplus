@@ -1,6 +1,6 @@
 import { Container, Graphics, Text, TextOptions, TextStyleAlign } from "pixi.js";
 import { FederatedPointerEvent, Point } from "pixi.js";
-import { getOppHeading, padHeading, pointsToDistance, pointsToHeading, roundDp, sizeToPoint, vectorToPoint } from "./util";
+import { getOppHeading, padHeading, pointsToDistance, pointsToHeading, roundDp, sizeToPoint, vectorToPoint } from "../util";
 
 export default class DistanceTool {
     stage: Container;
@@ -54,8 +54,7 @@ export default class DistanceTool {
                 this.distanceTxt.pivot.set(0, textSize.height/2);
                 position = position.add(vectorToPoint(5, this.heading + 90));
             }
-            else 
-            if (this.heading < 180-22.5) {
+            else if (this.heading < 180-22.5) {
                 this.distanceTxt.angle = this.heading - 90;
                 this.distanceTxt.pivot.set(textSize.width/2, 0);
             }

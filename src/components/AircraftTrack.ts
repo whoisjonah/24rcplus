@@ -1,9 +1,9 @@
 import { Container, Graphics, Text } from "pixi.js";
-import { AircraftData, Position } from "./types";
-import { altToFL, headingToCartesian, padHeading } from "./util";
-import config from "./config";
-import AirlineMapJson from "./AirlineMap.json";
-import AcftTypeMapJson from "./AcftTypeMap.json";
+import { AircraftData, Position } from "../types";
+import { altToFL, headingToCartesian, padHeading } from "../util";
+import config from "../config";
+import AirlineMapJson from "../data/AirlineMap.json";
+import AcftTypeMapJson from "../data/AcftTypeMap.json";
 // import GAPrefixes from "./GAPrefixes.json";
 const ACFT_TTL = 3;
 const TAIL_TTL = 4;

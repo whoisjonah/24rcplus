@@ -16,7 +16,7 @@
         "name": "All Grounds",
         "route": "/assets/all-grounds.svg",
         "cateogry": "global", 
-        "defaultStyle": {"color": 16777215, "pixelLine": true, "alpha": 0.15}
+        "defaultStyle": {"color": 16777215, "pixelLine": true, "alpha": 0.2}
     }
 
 ]

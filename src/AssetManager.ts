@@ -1,5 +1,5 @@
 import { Container, Graphics, GraphicsContext } from "pixi.js";
-import assets from "./assets.json";
+import assets from "./data/assets.json";
 import { SVGParser } from "./lineParser/SVGParser";
 
 const defaultStyle = {
@@ -18,7 +18,7 @@ class Asset {
     }
 }
 
-export class AssetManager {
+export default class AssetManager {
     basemap: Container;
 
     constructor(basemap: Container) {

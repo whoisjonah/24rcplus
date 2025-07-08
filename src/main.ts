@@ -1,11 +1,11 @@
-import { Application, Container, FederatedPointerEvent,  Point } from "pixi.js";
+import { Application, Container, FederatedPointerEvent, Point } from "pixi.js";
 import 'pixi.js/math-extras';
 import { acftCollectionToAcftArray, pointsToDistance } from "./util";
 import { AircraftCollection } from "./types";
-import AircraftTrack from "./AircraftTrack";
 import config from "./config";
-import DistanceTool from "./DistanceTool";
-import { AssetManager } from "./AssetManager";
+import AircraftTrack from "./components/AircraftTrack";
+import DistanceTool from "./components/DistanceTool";
+import AssetManager from "./AssetManager";
 
 // const pollAuthority = "http://localhost:3000";
 const pollAuthority = "https://data-temp.ptfs.app";
