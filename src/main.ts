@@ -1,4 +1,4 @@
-import { Application, Container, FederatedPointerEvent,  Graphics,  Point } from "pixi.js";
+import { Application, Container, FederatedPointerEvent,  Point } from "pixi.js";
 // import { Button } from '@pixi/ui';
 import 'pixi.js/math-extras';
 import { acftCollectionToAcftArray, pointsToDistance } from "./util";
