@@ -1,4 +1,5 @@
-import { Application, Container, FederatedPointerEvent, Point } from "pixi.js";
+import { Application, Container, FederatedPointerEvent,  Graphics,  Point } from "pixi.js";
+// import { Button } from '@pixi/ui';
 import 'pixi.js/math-extras';
 import { acftCollectionToAcftArray, pointsToDistance } from "./util";
 import { AircraftCollection } from "./types";
@@ -8,10 +9,13 @@ import DistanceTool from "./components/DistanceTool";
 import AssetManager from "./AssetManager";
 
 // const pollAuthority = "http://localhost:3000";
-const pollAuthority = "https://data-temp.ptfs.app";
+const POLL_AUTHORITY = "https://data-temp.ptfs.app";
+const POLL_INTERVAL = 3000;
+const POLL_ROUTES = ["/acft-data", "/acft-data/event"];
+const ROUTE_SWITCH_DELAY = 1000;
 
-/** aircraft collection to aircraft array */
-const ac2aa = acftCollectionToAcftArray;
+const DOUBLE_CLICK_MS = 300;
+const DOUBLE_CLICK_DISTANCE = 200;
 
 // const gameCoords = {
 //     top_left:     { x: -49222.1, y: -45890.8},
@@ -23,7 +27,8 @@ const antialias = false;
 let tickInterval: number;
 
 (async () => {
-    // Create a new application
+    // Initialisation
+    ///////////////////
     const app = new Application();
 
     let failed = false;
@@ -33,14 +38,21 @@ let tickInterval: number;
         document.body.innerHTML = `Could not start. Try reloading. ${failReason}`;
         return;
     }
-    document.getElementById("pixi-container")!.appendChild(app.canvas);
+    const container = document.getElementById("pixi-container");
+    if (!container) {
+        document.body.innerHTML = `Could not start. No element with ID "pixi-container" exists.`;
+        return;
+    }
+    container.appendChild(app.canvas);
     
     const basemap = new Container();
     const trackContainer = new Container();
+    const uiContainer = new Container();
 
     basemap.position.set(app.screen.width / 2, app.screen.height / 2);
     app.stage.addChild(basemap);
     app.stage.addChild(trackContainer);
+    app.stage.addChild(uiContainer);
 
     const assetManager = new AssetManager(basemap);
 
@@ -48,18 +60,19 @@ let tickInterval: number;
     assetManager.loadAsset("All Grounds");
     assetManager.loadAsset("Airspace Boundaries");
 
-    app.stage.eventMode = 'static';
-    app.stage.hitArea = app.screen;
-    app.stage.on('rightdown', () => app.stage.on('pointermove', dragmap));
-    app.stage.on('rightup', () => app.stage.off('pointermove', dragmap));
-    app.stage.on('touchstart', () => app.stage.on('pointermove', dragmap));
-    app.stage.on('touchend', () => app.stage.off('pointermove', dragmap));
+    // Airport Selector
+    /////////////////////
+    // const menuBg = new Graphics();
+    // menuBg.rect(128, 360, 256, 720);
+    // menuBg.fill({ alpha: 0.75, color: 0x202020 });
+    // uiContainer.addChild(menuBg);
 
     // Distance tool stuff
+    ////////////////////////
     const distanceTool = new DistanceTool(trackContainer, basemap);
     const distanceToolMouseMove = (e: FederatedPointerEvent) => distanceTool.mouseMove(e);
 
-    let doubleClickTime = 0;
+    let lastClickTime = 0;
     let doubleClickPoint = new Point();
     let disableMove = false;
     let destroy = false;
@@ -81,8 +94,8 @@ let tickInterval: number;
 
         const distance = pointsToDistance(doubleClickPoint, clickPoint);
 
-        if (now - doubleClickTime > 300 || distance > 200) {
-            doubleClickTime = now;
+        if (now - lastClickTime > DOUBLE_CLICK_MS || distance > DOUBLE_CLICK_DISTANCE) {
+            lastClickTime = now;
             doubleClickPoint = clickPoint;
             return;
         }
@@ -91,27 +104,27 @@ let tickInterval: number;
         disableMove = true;
     });
 
-    // Event switching
-    const pollRoutes = ["/acft-data", "/acft-data/event"]
+    // Event switching & keybinds
+    ///////////////////////////////
     let activeRoute = 0;
-    let lastSwitchTime = Date.now();
+    let lastSwitchTime = 0;
 
     window.addEventListener("keydown", ev => {
         // Switch polling source between event and normal server
         if (ev.key === "e") {
             const now = Date.now();
-            if (now - lastSwitchTime < 1000)
+            if (now - lastSwitchTime < ROUTE_SWITCH_DELAY)
                 return; // 1s cooldown on switching event mode.
             lastSwitchTime = now;
             acftTracks.forEach(track => {
                 track.destroy();
             });
             acftTracks = [];
-            activeRoute = (activeRoute + 1) % (pollRoutes.length);
+            activeRoute = (activeRoute + 1) % (POLL_ROUTES.length);
 
             clearInterval(tickInterval);
             tick();
-            tickInterval = setInterval(tick, 3000);
+            tickInterval = setInterval(tick, POLL_INTERVAL);
         }
         // Toggle for Predicted track lines
         else if (ev.key === "p") {
@@ -122,6 +135,8 @@ let tickInterval: number;
 
     let acftTracks: AircraftTrack[] = [];
 
+    // Resizing and moving
+    ////////////////////////
     function positionGraphics() {
         acftTracks.forEach(acftTrack => acftTrack.positionGraphics());
         distanceTool.positionGraphics();
@@ -139,7 +154,16 @@ let tickInterval: number;
 
         positionGraphics();
     }
+    
+    // Register events for dragging map
+    app.stage.eventMode = 'static';
+    app.stage.hitArea = app.screen;
+    app.stage.on('rightdown', () => app.stage.on('pointermove', dragmap));
+    app.stage.on('rightup', () => app.stage.off('pointermove', dragmap));
+    app.stage.on('touchstart', () => app.stage.on('pointermove', dragmap));
+    app.stage.on('touchend', () => app.stage.off('pointermove', dragmap));
 
+    // Scroll wheel
     app.stage.on('wheel', e => {
         // down scroll, zoom out
         if (e.deltaY > 0)
@@ -149,17 +173,17 @@ let tickInterval: number;
             basemap.scale.set(basemap.scale.x * 1.1);
 
         positionGraphics();
-        // console.log(basemap.scale.x);
     })
 
     // Update aircraft tracks
+    ///////////////////////////
     const tick = () => {
         fetch(
-            `${pollAuthority}${pollRoutes[activeRoute]}`,
+            `${POLL_AUTHORITY}${POLL_ROUTES[activeRoute]}`,
             { credentials: 'include' }
         ).then(async (res) => {
             const acftCollection: AircraftCollection = await res.json();
-            const acftDatas = ac2aa(acftCollection);
+            const acftDatas = acftCollectionToAcftArray(acftCollection);
 
             // Iterate through the existing track
             acftTracks.forEach(track => {
@@ -199,6 +223,5 @@ let tickInterval: number;
     };
 
     tick();
-    tickInterval = setInterval(tick, 3000);
-
+    tickInterval = setInterval(tick, POLL_INTERVAL);
 })();
