@@ -61,11 +61,9 @@ let tickInterval: number;
     globalThis.assetManager = assetManager;
 
     assetManager.loadAsset("global/coast");
-    assetManager.loadAsset("global/ground");
     assetManager.loadAsset("global/boundaries");
-    assetManager.loadAsset("IRFD/RWY_NW");
 
-    new DisplayControlBar();
+    new DisplayControlBar(assetManager);
 
     // Airport Selector
     /////////////////////
