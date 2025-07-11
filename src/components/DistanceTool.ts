@@ -1,6 +1,6 @@
 import { Container, Graphics, Text, TextOptions, TextStyleAlign } from "pixi.js";
 import { FederatedPointerEvent, Point } from "pixi.js";
-import { floorDp, getOppHeading, padHeading, pointsToDistance, pointsToHeading, roundDp, sizeToPoint, vectorToPoint } from "../util";
+import { floorDp, getOppHeading, padHeading, pointsToDistance, pointsToHeading, sizeToPoint, vectorToPoint } from "../util";
 
 export default class DistanceTool {
     stage: Container;

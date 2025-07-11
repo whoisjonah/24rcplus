@@ -1,4 +1,4 @@
-import { Application, Container, FederatedPointerEvent,  Graphics,  Point, Text } from "pixi.js";
+import { Application, Container, FederatedPointerEvent, Point} from "pixi.js";
 // import { Button } from '@pixi/ui';
 import 'pixi.js/math-extras';
 import { acftCollectionToAcftArray, pointsToDistance } from "./util";
@@ -7,9 +7,9 @@ import config from "./config";
 import AircraftTrack from "./components/AircraftTrack";
 import DistanceTool from "./components/DistanceTool";
 import AssetManager from "./AssetManager";
-import AirportPresets from "./data/AirportPresets.json"
-import {  ButtonContainer, List } from "@pixi/ui";
-import DisplayControlBar from "./components/DisplayControlBar";
+// import AirportPresets from "./data/AirportPresets.json"
+// import {  ButtonContainer, List } from "@pixi/ui";
+// import DisplayControlBar from "./components/DisplayControlBar";
 
 // const pollAuthority = "http://localhost:3000";
 const POLL_AUTHORITY = "https://data-temp.ptfs.app";
@@ -67,7 +67,7 @@ let tickInterval: number;
     assetManager.loadAsset("global/boundaries");
     assetManager.loadAsset("IRFD/RWY_NW");
 
-    const dcb = new DisplayControlBar();
+    // const dcb = new DisplayControlBar();
 
     // Airport Selector
     /////////////////////
