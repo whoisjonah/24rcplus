@@ -1,6 +1,6 @@
 import { Container, Graphics, Text, TextOptions, TextStyleAlign } from "pixi.js";
 import { FederatedPointerEvent, Point } from "pixi.js";
-import { getOppHeading, padHeading, pointsToDistance, pointsToHeading, roundDp, sizeToPoint, vectorToPoint } from "../util";
+import { floorDp, getOppHeading, padHeading, pointsToDistance, pointsToHeading, roundDp, sizeToPoint, vectorToPoint } from "../util";
 
 export default class DistanceTool {
     stage: Container;
@@ -111,7 +111,7 @@ export default class DistanceTool {
         
         // Vars for texts
         const d = pointsToDistance(this.start, this.end) / 33.07144; // (studs/100) to NM
-        const distance = roundDp(d, 1); // round distance to 1dp
+        const distance = floorDp(d, 1); // round distance to 1dp
         const hdg = pointsToHeading(this.start, this.end);
         const oppHdg = getOppHeading(hdg);
 

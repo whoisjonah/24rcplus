@@ -6,6 +6,11 @@ export function roundDp(n: number, dp: number = 0): number {
     return Math.round(n * multiplier) / multiplier;
 }
 
+export function floorDp(n: number, dp: number = 0): number {
+    const multiplier = Math.pow(10,dp);
+    return Math.floor(n * multiplier) / multiplier;
+}
+
 export function acftCollectionToAcftArray(acftCollection: AircraftCollection): AircraftData[] {
     return Object.entries(acftCollection).map(([callsign, acftData]) => ({
         callsign,

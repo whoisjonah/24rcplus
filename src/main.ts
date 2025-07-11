@@ -1,4 +1,4 @@
-import { Application, Container, FederatedPointerEvent,  Point } from "pixi.js";
+import { Application, Container, FederatedPointerEvent,  Graphics,  Point, Text } from "pixi.js";
 // import { Button } from '@pixi/ui';
 import 'pixi.js/math-extras';
 import { acftCollectionToAcftArray, pointsToDistance } from "./util";
@@ -7,6 +7,9 @@ import config from "./config";
 import AircraftTrack from "./components/AircraftTrack";
 import DistanceTool from "./components/DistanceTool";
 import AssetManager from "./AssetManager";
+import AirportPresets from "./data/AirportPresets.json"
+import {  ButtonContainer, List } from "@pixi/ui";
+import DisplayControlBar from "./components/DisplayControlBar";
 
 // const pollAuthority = "http://localhost:3000";
 const POLL_AUTHORITY = "https://data-temp.ptfs.app";
@@ -29,18 +32,19 @@ let tickInterval: number;
 (async () => {
     // Initialisation
     ///////////////////
+    const container = document.getElementById("pixi-container");
+    if (!container) {
+        document.body.innerHTML = `Could not start. No element with ID "pixi-container" exists.`;
+        return;
+    }
+    
     const app = new Application();
 
     let failed = false;
     let failReason = "";
-    await app.init({ antialias, background: 0, resizeTo: window }).catch(e => { failed = true; failReason = e });
+    await app.init({ antialias, background: 0, resizeTo: container.parentElement || container }).catch(e => { failed = true; failReason = e });
     if (failed) {
         document.body.innerHTML = `Could not start. Try reloading. ${failReason}`;
-        return;
-    }
-    const container = document.getElementById("pixi-container");
-    if (!container) {
-        document.body.innerHTML = `Could not start. No element with ID "pixi-container" exists.`;
         return;
     }
     container.appendChild(app.canvas);
@@ -55,17 +59,50 @@ let tickInterval: number;
     app.stage.addChild(uiContainer);
 
     const assetManager = new AssetManager(basemap);
+    // @ts-ignore
+    globalThis.assetManager = assetManager;
 
-    assetManager.loadAsset("Coast");
-    assetManager.loadAsset("All Grounds");
-    assetManager.loadAsset("Airspace Boundaries");
+    assetManager.loadAsset("global/coast");
+    assetManager.loadAsset("global/ground");
+    assetManager.loadAsset("global/boundaries");
+    assetManager.loadAsset("IRFD/RWY_NW");
+
+    const dcb = new DisplayControlBar();
 
     // Airport Selector
     /////////////////////
-    // const menuBg = new Graphics();
-    // menuBg.rect(128, 360, 256, 720);
-    // menuBg.fill({ alpha: 0.75, color: 0x202020 });
-    // uiContainer.addChild(menuBg);
+    // {
+    //     const menuBg = new Graphics();
+    //     menuBg.rect(128, 360, 256, 720);
+    //     menuBg.fill({ alpha: 0.75, color: 0x202020 });
+    //     uiContainer.addChild(menuBg);
+
+    //     const aptNames = ["IRFD", "IBLT", "ITKO"];
+
+    //     const buttons = aptNames.map(name => {
+    //         const btn = new ButtonContainer(
+    //             new Graphics()
+    //                 .rect(0, 0, 100, 50)
+    //                 .fill(0xFFFFFF)
+    //         );
+    //         btn.onPress.connect(() => {
+    //             const preset = AirportPresets.find(preset => preset.name == name)
+    //             if (!preset) return;
+    //             basemap.pivot.set(...preset?.pivot);
+    //             basemap.scale.set(preset.zoom);
+    //             positionGraphics();
+    //         });
+    //         btn.addChild(new Text({ text: name }));
+    //         return btn;
+    //     });
+
+    //     const list = new List({
+    //         children: buttons,
+    //         type: "vertical",
+    //     });
+
+    //     uiContainer.addChild(list);
+    // }
 
     // Distance tool stuff
     ////////////////////////

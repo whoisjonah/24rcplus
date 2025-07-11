@@ -1,22 +1,37 @@
 [
     {
-        "name": "Coast",
-        "route": "/assets/coast.svg",
         "cateogry": "global",
-        "defaultStyle": {"color": 16776960, "pixelLine": true, "alpha": 0.4}
-    },
-    {
-        "name": "Airspace Boundaries",
-        "route": "/assets/boundaries.svg",
-        "cateogry": "global",
-        "defaultStyle": {"color": 16777215, "pixelLine": true, "alpha": 0.15}
+        "assets": [
+            {
+                "id": "coast",
+                "name": "Coast",
+                "route": "/assets/maps/coast.svg",
+                "defaultStyle": { "color": 16776960, "pixelLine": true, "alpha": 0.4 }
+            },
+            {
+                "id": "boundaries",
+                "name": "Airspace Boundaries",
+                "route": "/assets/maps/boundaries.svg",
+                "defaultStyle": { "color": 16777215, "pixelLine": true, "alpha": 0.15 }
 
+            }
+        ]
     },
     {
-        "name": "All Grounds",
-        "route": "/assets/all-grounds.svg",
-        "cateogry": "global", 
-        "defaultStyle": {"color": 16777215, "pixelLine": true, "alpha": 0.2}
+        "cateogry": "IRFD",
+        "assets": [
+            {
+                "id": "RWY_NW",
+                "name": "Runways Northwest",
+                "route": "/assets/maps/IRFD/RWY_NW.svg",
+                "defaultStyle": { "color": 16776960, "pixelLine": true, "alpha": 0.4 }
+            },
+            {
+                "id": "GROUND",
+                "name": "Runways Northwest",
+                "route": "/assets/maps/IRFD/GROUND.svg",
+                "defaultStyle": { "color": 16777215, "pixelLine": true, "alpha": 0.4 }
+            }
+        ]
     }
-
 ]
