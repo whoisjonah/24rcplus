@@ -4,13 +4,13 @@
         "assets": [
             {
                 "id": "coast",
-                "name": "Coast",
+                "name": "COAST",
                 "route": "/assets/maps/coast.svg",
                 "defaultStyle": { "color": 16776960, "pixelLine": true, "alpha": 0.4 }
             },
             {
                 "id": "boundaries",
-                "name": "Airspace Boundaries",
+                "name": "AIRSPACE BOUNDS",
                 "route": "/assets/maps/boundaries.svg",
                 "defaultStyle": { "color": 16777215, "pixelLine": true, "alpha": 0.15 }
 
@@ -22,13 +22,19 @@
         "assets": [
             {
                 "id": "RWY_NW",
-                "name": "Runways Northwest",
+                "name": "RWY_NW",
                 "route": "/assets/maps/IRFD/RWY_NW.svg",
                 "defaultStyle": { "color": 16776960, "pixelLine": true, "alpha": 0.4 }
             },
             {
+                "id": "RWY_SE",
+                "name": "RWY_SE",
+                "route": "/assets/maps/IRFD/RWY_SE.svg",
+                "defaultStyle": { "color": 16776960, "pixelLine": true, "alpha": 0.4 }
+            },
+            {
                 "id": "GROUND",
-                "name": "Runways Northwest",
+                "name": "GROUND",
                 "route": "/assets/maps/IRFD/GROUND.svg",
                 "defaultStyle": { "color": 16777215, "pixelLine": true, "alpha": 0.4 }
             }
