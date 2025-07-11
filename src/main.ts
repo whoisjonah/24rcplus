@@ -7,9 +7,7 @@ import config from "./config";
 import AircraftTrack from "./components/AircraftTrack";
 import DistanceTool from "./components/DistanceTool";
 import AssetManager from "./AssetManager";
-// import AirportPresets from "./data/AirportPresets.json"
-// import {  ButtonContainer, List } from "@pixi/ui";
-// import DisplayControlBar from "./components/DisplayControlBar";
+import DisplayControlBar from "./components/DisplayControlBar";
 
 // const pollAuthority = "http://localhost:3000";
 const POLL_AUTHORITY = "https://data-temp.ptfs.app";
@@ -67,7 +65,7 @@ let tickInterval: number;
     assetManager.loadAsset("global/boundaries");
     assetManager.loadAsset("IRFD/RWY_NW");
 
-    // const dcb = new DisplayControlBar();
+    const dcb = new DisplayControlBar();
 
     // Airport Selector
     /////////////////////
