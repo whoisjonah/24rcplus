@@ -1,21 +1,142 @@
-import { ReactNode } from 'react';
+// This is bad. I had a 1 day deadline.
+import { JSX, ReactNode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import IslandToAirportMap from "../data/IslandToAirportMap.json";
+import AssetManager from '../AssetManager';
+
+let assetManager: AssetManager;
 
 type ButtonProps = {
     disabled?: boolean,
+    pressed?: boolean,
     onClick?: () => any,
-    children: ReactNode;
+    children?: ReactNode;
 };
 
-function Button({ disabled=false, onClick, children }: ButtonProps) {
+function Button({ disabled=false, pressed=false, onClick, children }: ButtonProps) {
     let classname = "dcb-button";
     if (disabled) classname += " dcb-disabled";
+    if (pressed) classname += " dcb-pressed";
     return <div className={classname} onClick={onClick}>{children}</div>
+}
+
+
+enum Menus {
+    MainMenu,
+    AptSelectMenu,
+}
+
+// cursed
+let setMenuId: React.Dispatch<React.SetStateAction<Menus>>;
+let selectedAirport = "";
+
+function getSelectedAirport() {
+    return selectedAirport;
+}
+
+function AptSelectMenu() {
+    const [island, setIsland] = useState("");
+    const [airport, setAirportState] = useState("");
+
+    function setAirport(airportName: string) {
+        setAirportState(airportName);
+        selectedAirport = airportName;
+    }
+
+    const islandToAirportMap = new Map(Object.entries(IslandToAirportMap));
+    
+    if (island === "")
+        return <>
+            <Button onClick={() => setMenuId(Menus.MainMenu)}>BACK</Button>
+            <div>
+                <Button onClick={() => setIsland("RKFRD")}>RKFRD</Button>
+                <Button onClick={() => setIsland("CYPRS")}>CYPRS</Button>
+            </div>
+            <div>
+                <Button onClick={() => setIsland("IZOLI")}>IZOLI</Button>
+                <Button onClick={() => setIsland("ORNJI")}>ORNJI</Button>
+            </div>
+            <div>
+                <Button onClick={() => setIsland("PERTH")}>PERTH</Button>
+                <Button onClick={() => setIsland("BARTH")}>BARTH</Button>
+            </div>
+            <div>
+                <Button onClick={() => setIsland("GRIND")}>GRIND</Button>
+                <Button onClick={() => setIsland("SAUTH")}>SAUTH</Button>
+            </div>
+        </>;
+    else
+        return <>
+            <Button onClick={() => setIsland("")}>BACK</Button>
+            {islandToAirportMap.get(island)?.map(apt =>
+                <Button
+                    pressed={selectedAirport === apt}
+                    onClick={() => { airport !== apt ? setAirport(apt) : setAirport(""); }}
+                    key={apt}
+                >{apt}</Button>
+            )}
+        </>;
+}
+
+function AssetButton({ assetString, pressed = false }: { assetString: string, pressed?: boolean } ) {
+    let assetInfo
+    try {
+        assetInfo = assetManager.parseAssetString(assetString);
+    } catch (e) {
+        return <Button disabled>{assetString}</Button>
+    }
+
+    const [loaded, setLoadedState] = useState(pressed || assetManager.isAssetLoaded(assetString));
+
+    function setLoaded() {
+        setLoadedState(assetManager.isAssetLoaded(assetString));
+    }
+
+    return <Button pressed={loaded} onClick={async () => {
+        if (loaded)
+            assetManager.unloadAsset(assetString);
+        else
+            await assetManager.loadAsset(assetString);
+        setLoaded();
+    }}>{assetInfo.name}</Button>
+
+}
+
+function MapsSection() {
+    const airport = getSelectedAirport();
+    const maps: Array<JSX.Element> = [];
+
+    maps.push(<AssetButton pressed assetString='global/coast' />)
+    maps.push(<AssetButton pressed assetString='global/boundaries' />)
+
+    const category = assetManager.getCategory(airport);
+    if (category) {
+        for (const asset of category.assets) {
+            if (maps.length >= 6) break;
+            maps.push(<AssetButton assetString={`${airport}/${asset.id}`} />)
+        }
+    }
+
+    function getMap(i: number) {
+        return maps[i] || <Button disabled />
+    }
+
+    const quickMaps2 = <>
+        <div>{getMap(0)}{getMap(1)}</div>
+        <div>{getMap(2)}{getMap(3)}</div>
+        <div>{getMap(4)}{getMap(5)}</div>
+    </>
+
+    return <>
+        <Button disabled>MAPS</Button>
+
+        {quickMaps2}
+    </>
 }
 
 function MainMenu() {
     return (<>
-        <Button onClick={() => console.log("test")}>APT SELECT</Button>
+        <Button onClick={() => setMenuId(Menus.AptSelectMenu)}>APT SELECT</Button>
         <Button disabled>RANGE<br />50</Button>
         <div>
             <Button disabled>PLACE CNTR</Button>
@@ -26,20 +147,7 @@ function MainMenu() {
             <Button disabled>PLACE RR</Button>
             <Button disabled>RR CNTR</Button>
         </div>
-        <Button disabled>MAPS</Button>
-
-        <div>
-            <Button disabled>MAP 1</Button>
-            <Button disabled>MAP 2</Button>
-        </div>
-        <div>
-            <Button disabled>MAP 3</Button>
-            <Button disabled>MAP 4</Button>
-        </div>
-        <div>
-            <Button disabled>MAP 5</Button>
-            <Button disabled>MAP 6</Button>
-        </div>
+        <MapsSection />
         <Button disabled>BRITE</Button>
         <div>
             <Button disabled>LDR DIR<br />N</Button>
@@ -55,11 +163,26 @@ function MainMenu() {
     </>)
 }
 
+
+
+function ActiveMenu() {
+    const [menuId, setMenuIdLocal] = useState(Menus.MainMenu);
+
+    // cursed (thank you closures)
+    setMenuId = setMenuIdLocal;
+
+    if (menuId === Menus.MainMenu)
+        return <MainMenu />
+    if (menuId === Menus.AptSelectMenu)
+        return <AptSelectMenu />
+}
+
 export default class DisplayControlBar {
-    constructor() {
+    constructor(localAssetManager: AssetManager) {
+        assetManager = localAssetManager;
         const bar = document.getElementById("dcb");
         if (!bar) throw new Error("DisplayControlBar: dcb element not found.");
         const root = createRoot(bar);
-        root.render(<MainMenu />);
+        root.render(<ActiveMenu />);
     }
 }
