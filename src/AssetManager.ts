@@ -14,7 +14,12 @@ export default class AssetManager {
         this.basemap = basemap;
     }
 
-    private parseAssetString(assetString: string) {
+    getCategory(cateogryName: string) {
+        const category = assetCategories.find(category => category.cateogry === cateogryName);
+        return category;
+    }
+
+    parseAssetString(assetString: string) {
         const parts = assetString.split("/");
         const [cateogryName, assetId] = parts;
         if (!cateogryName || !assetId) throw new Error(`AssetManager: Could not parse asset string ${assetString}.`);
@@ -57,7 +62,8 @@ export default class AssetManager {
         const asset = this.loadedAssets.get(assetString);
         if (asset) {
             asset.destroy();
-        }        
+        }
+        this.loadedAssets.delete(assetString);
     }
 
     isAssetLoaded(assetString: string) {
