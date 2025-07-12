@@ -178,7 +178,6 @@ let tickInterval: number;
     const tick = () => {
         fetch(
             `${POLL_AUTHORITY}${POLL_ROUTES[activeRoute]}`,
-            { credentials: 'include' }
         ).then(async (res) => {
             const acftCollection: AircraftCollection = await res.json();
             const acftDatas = acftCollectionToAcftArray(acftCollection);
