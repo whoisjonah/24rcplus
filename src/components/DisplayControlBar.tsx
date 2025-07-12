@@ -48,26 +48,15 @@ function AptSelectMenu() {
     if (island === "")
         return <>
             <Button onClick={() => setMenuId(Menus.MainMenu)}>BACK</Button>
-            <div>
-                <Button onClick={() => setIsland("RKFRD")}>RKFRD</Button>
-                <Button onClick={() => setIsland("CYPRS")}>CYPRS</Button>
-            </div>
-            <div>
-                <Button onClick={() => setIsland("IZOLI")}>IZOLI</Button>
-                <Button onClick={() => setIsland("ORNJI")}>ORNJI</Button>
-            </div>
-            <div>
-                <Button onClick={() => setIsland("PERTH")}>PERTH</Button>
-                <Button onClick={() => setIsland("BARTH")}>BARTH</Button>
-            </div>
-            <div>
-                <Button onClick={() => setIsland("SKPLS")}>SKPLS</Button>
-                <Button onClick={() => setIsland("GRIND")}>GRIND</Button>
-            </div>
-            <div>
-                <Button onClick={() => setIsland("SAUTH")}>SAUTH</Button>
-                <Button disabled></Button>
-            </div>
+            <Button onClick={() => setIsland("RKFRD")}>RKFRD</Button>
+            <Button onClick={() => setIsland("CYPRS")}>CYPRS</Button>
+            <Button onClick={() => setIsland("IZOLI")}>IZOLI</Button>
+            <Button onClick={() => setIsland("ORNJI")}>ORNJI</Button>
+            <Button onClick={() => setIsland("PERTH")}>PERTH</Button>
+            <Button onClick={() => setIsland("BARTH")}>BARTH</Button>
+            <Button onClick={() => setIsland("SKPLS")}>SKPLS</Button>
+            <Button onClick={() => setIsland("GRIND")}>GRIND</Button>
+            <Button onClick={() => setIsland("SAUTH")}>SAUTH</Button>
         </>;
     else
         return <>
