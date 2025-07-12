@@ -10,7 +10,7 @@ import AssetManager from "./AssetManager";
 import DisplayControlBar from "./components/DisplayControlBar";
 
 // const pollAuthority = "http://localhost:3000";
-const POLL_AUTHORITY = "https://data-temp.ptfs.app";
+const POLL_AUTHORITY = "https://24data.ptfs.app";
 const POLL_INTERVAL = 3000;
 const POLL_ROUTES = ["/acft-data", "/acft-data/event"];
 const ROUTE_SWITCH_DELAY = 1000;
