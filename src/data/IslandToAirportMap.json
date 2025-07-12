@@ -1,34 +1,37 @@
 {
     "RKFRD": [
-        "IGAR",
-        "IBLT",
         "IRFD",
         "IMLR",
+        "IGAR",
+        "IBLT",
         "ITRC"
     ],
     "CYPRS": [
-        "IBAR",
-        "IHEN",
         "ILAR",
+        "IPAP",
         "IIAB",
-        "IPAP"
+        "IHEN",
+        "IBAR"
     ],
     "IZOLI": [
-        "IJAF",
         "IZOL",
+        "IJAF",
         "ISCM"
     ],
     "ORNJI": [
-        "IDCS",
-        "ITKO"
+        "ITKO",
+        "IDCS"
     ],
     "PERTH": [
-        "ILKL",
-        "IPPH"
+        "IPPH",
+        "ILKL"
     ],
     "BARTH": [
         "IBTH",
         "IUFO"
+    ],
+    "SKPLS": [
+        "ISKP"
     ],
     "GRIND": [
         "IGRV"
