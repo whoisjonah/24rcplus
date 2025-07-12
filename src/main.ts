@@ -65,41 +65,6 @@ let tickInterval: number;
 
     new DisplayControlBar(assetManager);
 
-    // Airport Selector
-    /////////////////////
-    // {
-    //     const menuBg = new Graphics();
-    //     menuBg.rect(128, 360, 256, 720);
-    //     menuBg.fill({ alpha: 0.75, color: 0x202020 });
-    //     uiContainer.addChild(menuBg);
-
-    //     const aptNames = ["IRFD", "IBLT", "ITKO"];
-
-    //     const buttons = aptNames.map(name => {
-    //         const btn = new ButtonContainer(
-    //             new Graphics()
-    //                 .rect(0, 0, 100, 50)
-    //                 .fill(0xFFFFFF)
-    //         );
-    //         btn.onPress.connect(() => {
-    //             const preset = AirportPresets.find(preset => preset.name == name)
-    //             if (!preset) return;
-    //             basemap.pivot.set(...preset?.pivot);
-    //             basemap.scale.set(preset.zoom);
-    //             positionGraphics();
-    //         });
-    //         btn.addChild(new Text({ text: name }));
-    //         return btn;
-    //     });
-
-    //     const list = new List({
-    //         children: buttons,
-    //         type: "vertical",
-    //     });
-
-    //     uiContainer.addChild(list);
-    // }
-
     // Distance tool stuff
     ////////////////////////
     const distanceTool = new DistanceTool(trackContainer, basemap);
