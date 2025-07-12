@@ -109,7 +109,7 @@ let tickInterval: number;
 
     window.addEventListener("keydown", ev => {
         // Switch polling source between event and normal server
-        if (ev.key === "e") {
+        if (ev.key.toLocaleUpperCase() === "E") {
             const now = Date.now();
             if (now - lastSwitchTime < ROUTE_SWITCH_DELAY)
                 return; // 1s cooldown on switching event mode.
@@ -125,7 +125,7 @@ let tickInterval: number;
             tickInterval = setInterval(tick, POLL_INTERVAL);
         }
         // Toggle for Predicted track lines
-        else if (ev.key === "p") {
+        else if (ev.key.toUpperCase() === "P") {
             config.showPTL = !config.showPTL;
             positionGraphics();
         }
