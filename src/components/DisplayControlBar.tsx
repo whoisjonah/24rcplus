@@ -61,8 +61,12 @@ function AptSelectMenu() {
                 <Button onClick={() => setIsland("BARTH")}>BARTH</Button>
             </div>
             <div>
+                <Button onClick={() => setIsland("SKPLS")}>SKPLS</Button>
                 <Button onClick={() => setIsland("GRIND")}>GRIND</Button>
+            </div>
+            <div>
                 <Button onClick={() => setIsland("SAUTH")}>SAUTH</Button>
+                <Button disabled></Button>
             </div>
         </>;
     else
@@ -71,7 +75,10 @@ function AptSelectMenu() {
             {islandToAirportMap.get(island)?.map(apt =>
                 <Button
                     pressed={selectedAirport === apt}
-                    onClick={() => { airport !== apt ? setAirport(apt) : setAirport(""); }}
+                    onClick={() => {
+                        airport !== apt ? setAirport(apt) : setAirport("");
+                        setMenuId(Menus.MainMenu);
+                    }}
                     key={apt}
                 >{apt}</Button>
             )}
