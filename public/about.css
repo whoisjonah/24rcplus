@@ -10,5 +10,16 @@ body {
     padding: 20px 40px 20px 40px;
     max-width: 50rem;
     background-color: #222;
+}
 
+a {
+    color: cornflowerblue;
+}
+
+a:visited {
+    color: mediumslateblue;
+}
+
+a:hover {
+    color: aqua;
 }
