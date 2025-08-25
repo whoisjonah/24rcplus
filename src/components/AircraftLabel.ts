@@ -25,6 +25,22 @@ function callsignFallback(callsign: string) {
     return `${carrier.toUpperCase()}${number}`;
 }
 
+const unassumedTextStyle: Partial<TextStyle> = {
+    fontFamily:
+        'ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace',
+    fontSize: 14,
+    fill: 0x6f6f6f,
+    align: "left",
+};
+
+const assumedTextStyle: Partial<TextStyle> = {
+    fontFamily:
+        'ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace',
+    fontSize: 14,
+    fill: 0xffffff,
+    align: "left",
+}
+
 export default class AircraftLabel {
     isDestroyed: boolean;
 
@@ -42,9 +58,6 @@ export default class AircraftLabel {
     line: Graphics;
     hoverBackground: Graphics;
     dataBlock: Text;
-
-    assumedTextStyle: Partial<TextStyle>;
-    unassumedTextStyle: Partial<TextStyle>;
 
     /**
      * @param acftData AircraftData of the aircraft being tracked
@@ -73,24 +86,8 @@ export default class AircraftLabel {
         };
         this.stage.addChild(this.hoverBackground);
 
-        this.unassumedTextStyle = {
-            fontFamily:
-                'ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace',
-            fontSize: 14,
-            fill: 0x6f6f6f,
-            align: "left",
-        };
-
-        this.assumedTextStyle = {
-            fontFamily:
-                'ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace',
-            fontSize: 14,
-            fill: 0xffffff,
-            align: "left",
-        }
-
         this.dataBlock = new Text({
-            style: this.unassumedTextStyle,
+            style: unassumedTextStyle,
         });
 
         this.dataBlock.interactive = true;
@@ -117,7 +114,7 @@ export default class AircraftLabel {
         const threasholdDelta = thresholdFPM / (60 / 3); // 60/Δt. We assume Δt is 3. In future we can timestamp acftData and find real Δt.
         const altitudeArrow = (altitudeDelta > threasholdDelta) ? "↑" : (altitudeDelta < -threasholdDelta) ? "↓" : " "
 
-        this.dataBlock.style = this.isAssumed ? this.assumedTextStyle : this.unassumedTextStyle;
+        this.dataBlock.style = this.isAssumed ? assumedTextStyle : unassumedTextStyle;
 
         if (this.isAssumed) {
             this.dataBlock.text =
