@@ -1,32 +1,10 @@
-import { Container, Graphics, Text } from "pixi.js";
-import { AircraftData, Position } from "../types";
-import { altToFL, headingToCartesian, padHeading } from "../util";
+import { Container, Graphics } from "pixi.js";
 import config from "../config";
-import AirlineMapJson from "../data/AirlineMap.json";
-import AcftTypeMapJson from "../data/AcftTypeMap.json";
+import { AircraftData, Position } from "../types";
+import { headingToCartesian } from "../util";
 // import GAPrefixes from "./GAPrefixes.json";
 const ACFT_TTL = 3;
 const TAIL_TTL = 4;
-
-const AirlineMap = new Map(Object.entries(AirlineMapJson));
-const AcftTypeMap = new Map(Object.entries(AcftTypeMapJson));
-
-function callsignToIcao(callsign: string) {
-    const callsignParts = callsign.split("-");
-    const carrier = callsignParts[0];
-    const number = callsignParts[1];
-    const icaoCarrier = AirlineMap.get(carrier);
-    if (!icaoCarrier)
-        return;
-    return `${icaoCarrier}${number}`;
-}
-
-function callsignFallback(callsign: string) {
-    const callsignParts = callsign.split("-");
-    const carrier = callsignParts[0];
-    const number = callsignParts[1];
-    return `${carrier.toUpperCase()}${number}`;
-}
 
 export default class AircraftTrack {
     stage: Container;
@@ -35,7 +13,6 @@ export default class AircraftTrack {
     prevAlt: number;
     head: Graphics;
     tails: { graphic: Graphics, position: Position, ttl: number }[] = [];
-    dataBlock: Text;
     ttl = ACFT_TTL;
     ptl: Graphics; // Predicted track line
 
@@ -57,31 +34,7 @@ export default class AircraftTrack {
         this.head.circle(0,0,3).fill(0xFFFFFF);
         this.stage.addChild(this.head);
 
-        this.dataBlock = new Text({
-            style: {
-                fontFamily: 'ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace',
-                fontSize: 14,
-                fill: 0xffffff,
-                align: 'left',
-            },
-        });
         this.updateData(acftData);
-        this.formatText();
-        this.stage.addChild(this.dataBlock);
-    }
-    
-    formatText() {
-        const acftData = this.acftData;
-        const altitudeDelta = acftData.altitude - this.prevAlt;
-        const thresholdFPM = 500; // Show arrow if climbing or descending greater than 500 FPM.
-        const threasholdDelta = thresholdFPM / (60 / 3); // 60/Δt. We assume Δt is 3. In future we can timestamp acftData and find real Δt.
-        const altitudeArrow = (altitudeDelta > threasholdDelta) ? "↑" : (altitudeDelta < -threasholdDelta) ? "↓" : " "
-
-        this.dataBlock.text =
-            `${callsignToIcao(acftData.callsign) || callsignFallback(acftData.callsign)}\n` +
-            `FL${altToFL(acftData.altitude)}${altitudeArrow} ${Math.floor(Math.abs(acftData.speed))}kt\n` +
-            `${padHeading(acftData.heading)}°   ${AcftTypeMap.get(acftData.aircraftType)||"????"}\n`
-            // `${acftData.playerName}\n`
     }
 
     /**
@@ -95,11 +48,6 @@ export default class AircraftTrack {
 
         this.ptl.position.copyFrom(this.head);
         this.ptl.scale.set(this.basemap.scale.x);
-        
-
-        this.dataBlock.position.copyFrom(this.head);
-        this.dataBlock.position.x += 18;
-        this.dataBlock.position.y -= 12;
 
         this.tails.forEach(tail => {
             tail.graphic.position.copyFrom(this.basemap.position);
@@ -141,7 +89,6 @@ export default class AircraftTrack {
             this.ptl.stroke({ color: 0xffffff, pixelLine: true });
         }
         
-        this.formatText();
         this.positionGraphics();
         this.prevAlt = acftData.altitude;
     }
@@ -157,7 +104,6 @@ export default class AircraftTrack {
 
     destroy() {
         this.head.destroy(true);
-        this.dataBlock.destroy(true);
         this.ptl.destroy(true);
         this.tails.forEach(tail => {
             tail.graphic.destroy(true);
