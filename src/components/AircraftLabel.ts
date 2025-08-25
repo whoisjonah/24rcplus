@@ -110,6 +110,7 @@ export default class AircraftLabel {
     }
 
     formatText() {
+        if (this.isDestroyed) return;
         const acftData = this.acftData;
         const altitudeDelta = acftData.altitude - this.prevAlt;
         const thresholdFPM = 500; // Show arrow if climbing or descending greater than 500 FPM.
@@ -132,6 +133,7 @@ export default class AircraftLabel {
     }
 
     drawHoveringBackground() {
+        if (this.isDestroyed) return;
         this.hoverBackground.clear();
         if (!this.isHovered) return;
         /* Redraw each time to future proof for changes to the label */
@@ -147,6 +149,7 @@ export default class AircraftLabel {
 
     drawLine() {
         /* Only runs when acft data is received, not every frame, that's fine */
+        if (this.isDestroyed) return;
         this.line.clear();
         const { x: acftX, y: acftY } = acftToScreenPos(this.acftData, this.basemap);
 
