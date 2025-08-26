@@ -5,6 +5,7 @@ import AirlineMapJson from "../data/AirlineMap.json";
 import AcftTypeMapJson from "../data/AcftTypeMap.json";
 import { altToFL, padHeading } from "../util";
 import { acftToScreenPos, ScreenPosition } from "../helpers/coordConversions";
+import LabelScratchPad from "./LabelScratchpPad";
 const AirlineMap = new Map(Object.entries(AirlineMapJson));
 const AcftTypeMap = new Map(Object.entries(AcftTypeMapJson));
 
@@ -25,7 +26,7 @@ function callsignFallback(callsign: string) {
     return `${carrier.toUpperCase()}${number}`;
 }
 
-const unassumedTextStyle: Partial<TextStyle> = {
+export const unassumedTextStyle: Partial<TextStyle> = {
     fontFamily:
         'ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace',
     fontSize: 14,
@@ -33,7 +34,7 @@ const unassumedTextStyle: Partial<TextStyle> = {
     align: "left",
 };
 
-const assumedTextStyle: Partial<TextStyle> = {
+export const assumedTextStyle: Partial<TextStyle> = {
     fontFamily:
         'ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace',
     fontSize: 14,
@@ -58,6 +59,7 @@ export default class AircraftLabel {
     line: Graphics;
     hoverBackground: Graphics;
     dataBlock: Text;
+    scratchPad: LabelScratchPad;
 
     /**
      * @param acftData AircraftData of the aircraft being tracked
@@ -89,21 +91,24 @@ export default class AircraftLabel {
         this.dataBlock = new Text({
             style: unassumedTextStyle,
         });
-
+        
         this.dataBlock.interactive = true;
-
+        
         this.dataBlock.on("pointerover", () => this.handlePointerEnter());
         this.dataBlock.on("pointerout", () => this.handlePointerLeave());
         this.dataBlock.on("pointerdown", () => this.handlePointerDown());
         this.dataBlock.on("pointerup", () => this.handlePointerUp());
         this.dataBlock.on("pointermove", this.handlePointerMove.bind(this));
-
         this.dataBlock.on("rightclick", () => this.handleRightClick());
+        this.stage.addChild(this.dataBlock);
 
+        this.scratchPad = new LabelScratchPad(this);
+        
         this.updateData(acftData);
         this.formatText();
         this.updatePosition();
-        this.stage.addChild(this.dataBlock);
+
+        this.scratchPad.updatePosition();
     }
 
     formatText() {
@@ -213,6 +218,8 @@ export default class AircraftLabel {
 
         this.isFlipped = this.dataBlock.position.x - acftToScreenPos(this.acftData, this.basemap).x < 0;
 
+        this.scratchPad.updatePosition();
+
         this.updatePosition();
         this.updateGraphics();
     }
@@ -221,6 +228,8 @@ export default class AircraftLabel {
         this.isAssumed = !this.isAssumed;
         this.formatText();
         this.updateGraphics();
+        this.scratchPad.updatePosition();
+        this.scratchPad.updateText();
     }
 
     /**
@@ -245,6 +254,8 @@ export default class AircraftLabel {
 
         this.dataBlock.position.x += 18;
         this.dataBlock.position.y -= 12;
+
+        this.scratchPad.updatePosition();
     }
 
     updateData(acftData: AircraftData) {
@@ -263,5 +274,6 @@ export default class AircraftLabel {
         this.isDestroyed = true;
         this.line.destroy(true);
         this.dataBlock.destroy(true);
+        this.scratchPad.destroy();
     }
 }

@@ -109,6 +109,9 @@ let tickInterval: number;
     let lastSwitchTime = 0;
 
     window.addEventListener("keydown", ev => {
+        // If the user typesinto a label dont trigger hotkeys
+        if(acftLabels.some(label => label.scratchPad.isBeingEdited)) return;
+
         // Switch polling source between event and normal server
         if (ev.key.toLocaleUpperCase() === "E") {
             const now = Date.now();
