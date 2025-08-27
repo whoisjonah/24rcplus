@@ -8,6 +8,7 @@ import AircraftTrack from "./components/AircraftTrack";
 import DistanceTool from "./components/DistanceTool";
 import AssetManager from "./AssetManager";
 import DisplayControlBar from "./components/DisplayControlBar";
+import AircraftLabel from "./components/AircraftLabel";
 
 // const pollAuthority = "http://localhost:3000";
 const POLL_AUTHORITY = "https://24data.ptfs.app";
@@ -108,6 +109,9 @@ let tickInterval: number;
     let lastSwitchTime = 0;
 
     window.addEventListener("keydown", ev => {
+        // If the user typesinto a label dont trigger hotkeys
+        if(acftLabels.some(label => label.scratchPad.isBeingEdited)) return;
+
         // Switch polling source between event and normal server
         if (ev.key.toLocaleUpperCase() === "E") {
             const now = Date.now();
@@ -132,11 +136,13 @@ let tickInterval: number;
     });
 
     let acftTracks: AircraftTrack[] = [];
+    let acftLabels: AircraftLabel[] = [];
 
     // Resizing and moving
     ////////////////////////
     function positionGraphics() {
-        acftTracks.forEach(acftTrack => acftTrack.positionGraphics());
+        acftTracks.forEach(acftTrack => acftTrack.positionGraphics());      
+        acftLabels.forEach(label => label.tickUpdate());
         distanceTool.positionGraphics();
     }
 
@@ -207,6 +213,27 @@ let tickInterval: number;
 
             // Filter tracks with TTL < 0;
             acftTracks = acftTracks.filter(track => track.ttl > 0);
+
+
+            acftLabels = acftLabels.filter(label => !label.isDestroyed);
+
+            // Iterate through existing labels
+            acftLabels.forEach(label => {
+                const matchingData = acftDatas.find(acftData => acftData.playerName === label.acftData.playerName);
+                if(matchingData) {
+                    label.updateData(matchingData);
+                    label.updateGraphics();
+                } else {
+                    // No new data received, plane probably deleted => destroy label
+                    label.destroy();
+                }
+            });
+
+            // Create new labels for new aircraft
+            newAcftDatas.forEach(acftData => {
+                const label = new AircraftLabel(acftData, trackContainer, basemap);
+                acftLabels.push(label);
+            });
         }).catch(() => {
             // Ping failed. All tracks not found.
             acftTracks.forEach(track => {
