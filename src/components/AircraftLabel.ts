@@ -5,7 +5,7 @@ import AirlineMapJson from "../data/AirlineMap.json";
 import AcftTypeMapJson from "../data/AcftTypeMap.json";
 import { altToFL, padHeading } from "../util";
 import { acftToScreenPos, ScreenPosition } from "../helpers/coordConversions";
-import LabelScratchPad from "./LabelScratchpPad";
+import LabelScratchPad from "./LabelScratchPad";
 const AirlineMap = new Map(Object.entries(AirlineMapJson));
 const AcftTypeMap = new Map(Object.entries(AcftTypeMapJson));
 
