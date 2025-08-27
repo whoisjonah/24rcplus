@@ -30,7 +30,7 @@ export const unassumedTextStyle: Partial<TextStyle> = {
     fontFamily:
         'ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace',
     fontSize: 14,
-    fill: 0x6f6f6f,
+    fill: 0x8f8f8f,
     align: "left",
 };
 
@@ -162,8 +162,8 @@ export default class AircraftLabel {
         this.line.lineTo(labelX, labelY);
 
         this.line.stroke({
-            width: 2,
-            color: "#ffffff"
+            width: 1,
+            color: 0x6f6f6f,
         });
     }
 
