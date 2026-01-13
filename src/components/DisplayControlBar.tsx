@@ -144,6 +144,13 @@ function MainMenu() {
     return (<>
         <Button onClick={() => setMenuId(Menus.AptSelectMenu)}>APT SELECT</Button>
         <Button disabled>RANGE<br />50</Button>
+        <Button
+            pressed={(window as any).isEventMode?.()}
+            onClick={() => {
+                (window as any).toggleEventMode?.();
+                forceUpdate({});
+            }}
+        >EVENT MODE</Button>
         <div>
             <Button onClick={() => adjustLabelScale(-0.1)}>-LBL</Button>
             <Button disabled>{Math.round((config.labelScale || 1) * 100)}%</Button>

@@ -2,7 +2,7 @@ import { Application, Container, FederatedPointerEvent, Point } from "pixi.js";
 // import { Button } from '@pixi/ui';
 import 'pixi.js/math-extras';
 import { acftCollectionToAcftArray, pointsToDistance } from "./util";
-import { AircraftCollection } from "./types";
+import { AircraftCollection, FlightPlanData } from "./types";
 import config from "./config";
 import AircraftTrack from "./components/AircraftTrack";
 import DistanceTool from "./components/DistanceTool";
@@ -171,26 +171,25 @@ const antialias = false;
     ///////////////////////////////
     let lastSwitchTime = 0;
 
+    function toggleEventMode() {
+        const now = Date.now();
+        if (now - lastSwitchTime < ROUTE_SWITCH_DELAY)
+            return; // 1s cooldown on switching event mode.
+        lastSwitchTime = now;
+        eventModeWS = !eventModeWS;
+        acftTracks.forEach(track => track.destroy());
+        acftTracks = [];
+        acftLabels.forEach(label => label.destroy());
+        acftLabels = [];
+        showToast(`Event mode ${eventModeWS ? 'ON' : 'OFF'}`, 'info');
+    }
+
     window.addEventListener("keydown", ev => {
         // If the user typesinto a label dont trigger hotkeys
         if (acftLabels.some(label => label.scratchPad.isBeingEdited)) return;
 
-        // Switch polling source between event and normal server
-        if (ev.key.toLocaleUpperCase() === "E") {
-            const now = Date.now();
-            if (now - lastSwitchTime < ROUTE_SWITCH_DELAY)
-                return; // 1s cooldown on switching event mode.
-            lastSwitchTime = now;
-            // toggle event mode
-            eventModeWS = !eventModeWS;
-            acftTracks.forEach(track => track.destroy());
-            acftTracks = [];
-            acftLabels.forEach(label => label.destroy());
-            acftLabels = [];
-            showToast(`Event mode ${eventModeWS ? 'ON' : 'OFF'}`, 'info');
-        }
         // Toggle for Predicted track lines
-        else if (ev.key.toUpperCase() === "P") {
+        if (ev.key.toUpperCase() === "P") {
             config.showPTL = !config.showPTL;
             positionGraphics();
         }
@@ -209,6 +208,30 @@ const antialias = false;
 
     let acftTracks: AircraftTrack[] = [];
     let acftLabels: AircraftLabel[] = [];
+
+    // Flight plan storage keyed by robloxName/playerName
+    const flightPlans: { [playerName: string]: FlightPlanData } = {};
+
+    // Manual overrides for flight plan callsign
+    const flightPlanCallsigns: { [playerName: string]: string } = {};
+
+    // Expose flight plan callsign management globally
+    (window as any).setFlightPlanCallsign = (playerName: string, callsign: string) => {
+        const trimmed = (callsign || "").trim();
+        if (!trimmed) {
+            delete flightPlanCallsigns[playerName];
+            return;
+        }
+        flightPlanCallsigns[playerName] = trimmed;
+    };
+
+    (window as any).getFlightPlanCallsign = (playerName: string): string | undefined => {
+        return flightPlanCallsigns[playerName];
+    };
+
+    // Expose event mode controls for UI button
+    (window as any).toggleEventMode = () => toggleEventMode();
+    (window as any).isEventMode = () => eventModeWS;
 
     // Allow UI to scale label font sizes
     (window as any).setLabelScale = (scale: number) => {
@@ -300,6 +323,24 @@ const antialias = false;
     function processData(acftCollection: AircraftCollection) {
         let acftDatas = acftCollectionToAcftArray(acftCollection);
         
+        // Populate flight plan fields from stored flight plans and overrides
+        acftDatas = acftDatas.map(acftData => {
+            const plan = flightPlans[acftData.playerName];
+            const manualCallsign = flightPlanCallsigns[acftData.playerName];
+            const planCallsign = plan?.callsign;
+
+            return {
+                ...acftData,
+                flightPlanCallsign: manualCallsign || planCallsign,
+                flightPlanRoute: plan?.route && plan.route !== "N/A" ? plan.route : plan?.route, // keep provided route even if N/A
+                flightPlanOrigin: plan?.departing,
+                flightPlanDestination: plan?.arriving,
+                flightPlanRules: plan?.flightrules,
+                flightPlanLevel: plan?.flightlevel ? plan.flightlevel.padStart(3, "0") : undefined,
+                flightPlanAircraft: plan?.aircraft,
+            };
+        });
+        
         // Filter based on config settings
         if (config.hideGroundTraffic) {
             acftDatas = acftDatas.filter(acft => !acft.isOnGround);
@@ -309,6 +350,7 @@ const antialias = false;
         const acftDataMap: { [key: string]: any } = {};
         acftDatas.forEach(acft => {
             acftDataMap[acft.callsign] = acft;
+            acftDataMap[`player:${acft.playerName}`] = acft; // allow lookup by playerName for flight plan sync
         });
         updateAircraftData(acftDataMap);
 
@@ -362,6 +404,19 @@ const antialias = false;
     function onWSMessage(ev: MessageEvent) {
         const msg = JSON.parse(ev.data);
         if (!msg || !msg.t) return;
+
+        // Capture flight plan payloads (main and event)
+        if (msg.t === "FLIGHT_PLAN" || msg.t === "FLIGHTPLAN" || msg.t === "EVENT_FLIGHT_PLAN") {
+            const fp = msg.d as FlightPlanData;
+            if (fp && fp.robloxName) {
+                flightPlans[fp.robloxName] = fp;
+                // Populate default callsign override from flight plan unless user manually overrides later
+                if (fp.callsign && !flightPlanCallsigns[fp.robloxName]) {
+                    flightPlanCallsigns[fp.robloxName] = fp.callsign;
+                }
+            }
+            return;
+        }
 
         const isMain = msg.t === "ACFT_DATA";
         const isEvent = msg.t === "EVENT_ACFT_DATA";

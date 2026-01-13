@@ -61,7 +61,7 @@ export default class LabelScratchPad {
         
         this.textElement = new Text({
             style: unassumedTextStyle,
-            text: label.isAssumed ? "RMK" : ""
+            text: label.isAssumed ? "AHDG" : ""
         });
         
         this.label.stage.addChild(this.textElement);
@@ -116,7 +116,7 @@ export default class LabelScratchPad {
     // Updates
     updateText() {
         this.textElement.style = this.label.isAssumed ? assumedTextStyle : unassumedTextStyle;
-        if(this.label.isAssumed) this.textElement.text = this.content || "RMK"
+        if(this.label.isAssumed) this.textElement.text = (this.content ? `A${this.content}` : "AHDG")
         else this.textElement.text = this.content || ""
         this.renderBorderBox();
     }

@@ -13,11 +13,11 @@ body {
     bottom: 10px;
     right: 10px;
 
-    width: 48pt;
-    height: 48pt;
-    line-height: 48pt;
+    width: 12pt;
+    height: 12pt;
+    line-height: 12pt;
 
-    font-size: 48pt;
+    font-size: 12pt;
     color:white;
     text-decoration: none;
     text-align: center;
@@ -27,7 +27,7 @@ body {
     border: white;
     border-style: solid;
     border-radius: 50%;
-    border-width: 3px;
+    border-width: 1px;
 }
 
 .copyright {
@@ -48,7 +48,7 @@ body {
 }
 
 #app {
-    height: 100%;
+    flex: 1;
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -59,11 +59,11 @@ body {
     display: flex;
     flex-direction: row;
     height: 80px;
-    transition: transform 0.3s ease;
+    transition: opacity 0.3s ease;
 }
 
 #dcb.hidden {
-    transform: translateY(-100%);
+    display: none;
 }
 
 #toolbar-toggle {

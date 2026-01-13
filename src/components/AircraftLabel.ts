@@ -1,4 +1,4 @@
-import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import { Container, Graphics, Text, TextStyle, Rectangle } from "pixi.js";
 import { AircraftData } from "../types";
 import config from "../config";
 
@@ -11,6 +11,7 @@ function callsignToIcao(callsign: string) {
     const callsignParts = callsign.split("-");
     const carrier = callsignParts[0];
     const number = callsignParts[1];
+    if (!number) return carrier?.toUpperCase() || callsign; // handle missing suffix
     const icaoCarrier = AirlineMap.get(carrier);
     if (!icaoCarrier)
         return;
@@ -21,6 +22,7 @@ function callsignFallback(callsign: string) {
     const callsignParts = callsign.split("-");
     const carrier = callsignParts[0];
     const number = callsignParts[1];
+    if (!number) return carrier?.toUpperCase() || callsign; // avoid "undefined"
     return `${carrier.toUpperCase()}${number}`;
 }
 
@@ -61,9 +63,13 @@ export default class AircraftLabel {
     hoverBackground: Graphics;
     dataBlock: Text;
     callsignClickZone: Graphics;
+    flClickZone: Graphics;
+    spdClickZone: Graphics;
     fpButton: Text;
     scratchPad: LabelScratchPad;
     baseFontSize = 14;
+    assignedFL: string | null = null;
+    assignedSpeed: string | null = null;
 
     /**
      * @param acftData AircraftData of the aircraft being tracked
@@ -131,6 +137,19 @@ export default class AircraftLabel {
         });
         this.stage.addChild(this.callsignClickZone);
 
+        // Click zones for FL / speed selection
+        this.flClickZone = new Graphics();
+        this.flClickZone.eventMode = 'static';
+        this.flClickZone.cursor = 'pointer';
+        this.flClickZone.on('pointertap', ev => this.openFLDropdown(ev));
+        this.stage.addChild(this.flClickZone);
+
+        this.spdClickZone = new Graphics();
+        this.spdClickZone.eventMode = 'static';
+        this.spdClickZone.cursor = 'pointer';
+        this.spdClickZone.on('pointertap', ev => this.openSpeedDropdown(ev));
+        this.stage.addChild(this.spdClickZone);
+
         // Create FP button
         this.fpButton = new Text({
             text: 'FP',
@@ -154,7 +173,7 @@ export default class AircraftLabel {
 
         this.scratchPad = new LabelScratchPad(this);
 
-    this.applyFontScale();
+        this.applyFontScale();
 
         this.updateData(acftData);
         this.formatText();
@@ -184,7 +203,9 @@ export default class AircraftLabel {
     formatText() {
         if (this.isDestroyed) return;
         
-        const callsign = callsignToIcao(this.acftData.callsign) || callsignFallback(this.acftData.callsign);
+        // Use flight plan callsign (set by user in command) if available, otherwise fallback
+        const commandCallsign = this.acftData.flightPlanCallsign || this.acftData.callsign;
+        const callsign = callsignToIcao(commandCallsign) || callsignFallback(commandCallsign);
         
         if (this.isAssumed) {
             // Show full data block for assumed aircraft
@@ -196,17 +217,10 @@ export default class AircraftLabel {
             // Format speed (2-3 digits)
             const speedFormatted = Math.round(this.acftData.speed).toString();
             
-            // Format heading (3 digits)
-            const headingFormatted = Math.round(this.acftData.heading).toString().padStart(3, '0');
-            
-            // Get aircraft type (abbreviated)
-            const acftType = this.acftData.aircraftType.replace('Boeing ', 'B').replace('Airbus ', '');
-            
             // Build data block
-            // Line 1: Callsign
-            // Line 2: FL + altitude, speed + kt
-            // Line 3: heading + °, aircraft type
-            this.dataBlock.text = `${callsign}\nFL${altFormatted} ${speedFormatted}kt\n${headingFormatted}° ${acftType}`;
+            const afl = this.assignedFL ? `AFL${this.assignedFL}` : "AFL";
+            const asp = this.assignedSpeed ? `ASP${this.assignedSpeed}` : "ASP";
+            this.dataBlock.text = `${callsign}\nFL${altFormatted} ${speedFormatted}kt\n${afl} ${asp}`;
             
             this.fpButton.visible = true;
         } else {
@@ -214,6 +228,8 @@ export default class AircraftLabel {
             this.dataBlock.style = unassumedTextStyle;
             this.dataBlock.text = callsign;
             this.fpButton.visible = false;
+            this.assignedFL = null;
+            this.assignedSpeed = null;
         }
     }
 
@@ -382,6 +398,26 @@ export default class AircraftLabel {
         }
         this.callsignClickZone.fill({ color: 0x000000, alpha: 0.01 }); // Nearly invisible
 
+        // Update FL / speed click zones when assumed
+        this.flClickZone.clear();
+        this.spdClickZone.clear();
+        if (this.isAssumed) {
+            const lines = this.dataBlock.text.split('\n');
+            const approxLineH = lines.length > 0 ? this.dataBlock.height / lines.length : lineHeight;
+            const line3Y = bounds.minY + approxLineH * 2; // AFL/ASP line
+
+            const aflText = this.assignedFL ? `AFL${this.assignedFL}` : "AFL";
+            const aflWidth = this.measureTextWidthTemp(aflText, this.dataBlock.style);
+            const aspWidth = bounds.width - aflWidth - 6; // ASP takes remaining space
+            const aspX = bounds.minX + aflWidth + 6;
+
+            // AFL portion opens FL dropdown
+            this.setZoneRect(this.flClickZone, bounds.minX, line3Y, aflWidth, approxLineH, 0.06);
+
+            // ASP portion opens speed dropdown
+            this.setZoneRect(this.spdClickZone, aspX, line3Y, aspWidth, approxLineH, 0.06);
+        }
+
         this.scratchPad.updatePosition();
 
         // Position FP button to the right of the scratchpad
@@ -404,11 +440,114 @@ export default class AircraftLabel {
         this.updateGraphics();
     }
 
+    private openFLDropdown(ev: PointerEvent) {
+        ev.stopPropagation();
+        this.openDropdown(this.getFlightLevelOptions(), ev.clientX, ev.clientY, selected => {
+            this.assignedFL = selected;
+            this.formatText();
+            this.updatePosition();
+        });
+    }
+
+    private openSpeedDropdown(ev: PointerEvent) {
+        ev.stopPropagation();
+        this.openDropdown(this.getSpeedOptions(), ev.clientX, ev.clientY, selected => {
+            this.assignedSpeed = selected;
+            this.formatText();
+            this.updatePosition();
+        });
+    }
+
+    private getFlightLevelOptions(): string[] {
+        const opts: string[] = [];
+        for (let fl = 10; fl <= 450; fl += 5) {
+            opts.push(fl.toString().padStart(3, '0'));
+        }
+        return opts;
+    }
+
+    private getSpeedOptions(): string[] {
+        const opts: string[] = [];
+        for (let spd = 80; spd <= 340; spd += 5) {
+            opts.push(spd.toString());
+        }
+        return opts;
+    }
+
+
+    private openDropdown(options: string[], x: number, y: number, onSelect: (val: string) => void) {
+        // Remove any existing dropdown
+        document.querySelectorAll('.label-dropdown').forEach(el => el.remove());
+
+        const menu = document.createElement('div');
+        menu.className = 'label-dropdown';
+        menu.style.position = 'fixed';
+        menu.style.left = `${x}px`;
+        menu.style.top = `${y}px`;
+        menu.style.background = 'rgba(0,0,0,0.9)';
+        menu.style.border = '1px solid #4d9d4d';
+        menu.style.borderRadius = '4px';
+        menu.style.padding = '4px';
+        menu.style.zIndex = '3000';
+        menu.style.maxHeight = '220px';
+        menu.style.overflowY = 'auto';
+        menu.style.scrollbarWidth = 'none'; // Hide scrollbar in Firefox
+        (menu.style as any).msOverflowStyle = 'none'; // Hide scrollbar in IE/Edge
+        menu.style.fontFamily = 'ui-monospace, monospace';
+        menu.style.fontSize = '12px';
+        menu.style.color = '#d8ffd8';
+
+        options.forEach(val => {
+            const item = document.createElement('div');
+            item.textContent = val;
+            item.style.padding = '2px 6px';
+            item.style.cursor = 'pointer';
+            item.addEventListener('mouseenter', () => item.style.background = 'rgba(77,157,77,0.35)');
+            item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+            item.addEventListener('click', () => {
+                onSelect(val);
+                menu.remove();
+            });
+            menu.appendChild(item);
+        });
+
+        document.body.appendChild(menu);
+
+        // Hide scrollbar in Chrome/Webkit browsers
+        const style = document.createElement('style');
+        style.textContent = `.label-dropdown::-webkit-scrollbar { display: none; }`;
+        document.head.appendChild(style);
+
+        const closeOnClick = (evt: MouseEvent) => {
+            if (!menu.contains(evt.target as Node)) {
+                menu.remove();
+                window.removeEventListener('mousedown', closeOnClick, true);
+            }
+        };
+        window.addEventListener('mousedown', closeOnClick, true);
+    }
+
+    private setZoneRect(target: Graphics, x: number, y: number, w: number, h: number, alpha = 0.06) {
+        target.clear();
+        target.hitArea = new Rectangle(x, y, w, h);
+        target.rect(x, y, w, h);
+        target.fill({ color: 0x000000, alpha });
+    }
+
+    private measureTextWidthTemp(text: string, style: any): number {
+        const temp = new Text({ text, style });
+        const width = temp.width;
+        temp.destroy();
+        return width;
+    }
+
     destroy() {
         this.isDestroyed = true;
         this.line.destroy(true);
         this.dataBlock.destroy(true);
         this.callsignClickZone.destroy(true);
+        this.flClickZone.destroy(true);
+        this.spdClickZone.destroy(true);
         this.fpButton.destroy(true);
         this.scratchPad.destroy();
     }

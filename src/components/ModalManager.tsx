@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import FlightPlanViewer from './FlightPlanViewer';
 import ContextMenu from './ContextMenu';
 import { AircraftData } from '../types';
 
@@ -11,10 +10,12 @@ interface ModalManagerState {
     contextMenuX: number;
     contextMenuY: number;
     contextMenuIsAssumed: boolean;
+    dataVersion: number; // increments when aircraft data map updates
 }
 
 let setModalState: React.Dispatch<React.SetStateAction<ModalManagerState>>;
 let currentAircraftData: { [key: string]: AircraftData } = {};
+let dataVersion = 0;
 
 export function showFlightPlanModal(aircraft: AircraftData) {
     setModalState(prev => ({
@@ -44,6 +45,11 @@ export function hideContextMenu() {
 
 export function updateAircraftData(data: { [key: string]: AircraftData }) {
     currentAircraftData = data;
+    // bump version so ModalManager reacts to fresh aircraft data (e.g., flight plan updates)
+    if (setModalState) {
+        const next = ++dataVersion;
+        setModalState(prev => ({ ...prev, dataVersion: next }));
+    }
 }
 
 function ModalManager() {
@@ -53,26 +59,64 @@ function ModalManager() {
         contextMenuAircraft: null,
         contextMenuX: 0,
         contextMenuY: 0,
-        contextMenuIsAssumed: false
+        contextMenuIsAssumed: false,
+        dataVersion: 0
     });
+    const [callsignInput, setCallsignInput] = useState("");
+    const [seedTimer, setSeedTimer] = useState<number | null>(null);
 
     setModalState = setState;
 
     const closeModals = () => {
-        setState({
+        if (seedTimer) {
+            clearTimeout(seedTimer);
+            setSeedTimer(null);
+        }
+        setState(prev => ({
+            ...prev,
             showFlightPlan: false,
             selectedAircraft: null,
             contextMenuAircraft: null,
             contextMenuX: 0,
             contextMenuY: 0,
-            contextMenuIsAssumed: false
-        });
+            contextMenuIsAssumed: false,
+            dataVersion: prev.dataVersion
+        }));
     };
+
+    // When opening flight plan editor, seed input once after 5s if still empty (avoid clobbering user typing)
+    useEffect(() => {
+        if (seedTimer) {
+            clearTimeout(seedTimer);
+            setSeedTimer(null);
+        }
+
+        if (state.showFlightPlan && state.selectedAircraft) {
+            const acft = state.selectedAircraft;
+            const fpCallsign = acft.flightPlanCallsign || (window as any).getFlightPlanCallsign?.(acft.playerName) || acft.callsign || "";
+            // Seed immediately if empty AND user hasn't typed, otherwise delay 5s before restoring
+            if (callsignInput === "") {
+                const t = window.setTimeout(() => {
+                    setCallsignInput(prev => (prev === "" ? fpCallsign : prev));
+                    setSeedTimer(null);
+                }, 5000) as unknown as number;
+                setSeedTimer(t);
+            }
+        }
+
+        return () => {
+            if (seedTimer) {
+                clearTimeout(seedTimer);
+                setSeedTimer(null);
+            }
+        };
+    }, [state.showFlightPlan, state.selectedAircraft]);
 
     // Update selected aircraft data if it changes
     useEffect(() => {
         if (state.selectedAircraft) {
-            const updated = currentAircraftData[state.selectedAircraft.callsign];
+            const updated = currentAircraftData[state.selectedAircraft.callsign]
+                || currentAircraftData[`player:${state.selectedAircraft.playerName}`];
             if (updated && updated !== state.selectedAircraft) {
                 setState(prev => ({
                     ...prev,
@@ -80,15 +124,40 @@ function ModalManager() {
                 }));
             }
         }
-    }, [currentAircraftData]);
+    }, [state.selectedAircraft, state.dataVersion]);
 
     return (
         <>
             {state.showFlightPlan && state.selectedAircraft && (
-                <FlightPlanViewer
-                    aircraft={state.selectedAircraft}
-                    onClose={closeModals}
-                />
+                <div className="flight-plan-overlay" onClick={closeModals}>
+                    <div className="flight-plan-panel" style={{ maxWidth: 320 }} onClick={(e) => e.stopPropagation()}>
+                        <div className="flight-plan-header">
+                            <h2>Edit Callsign</h2>
+                            <button className="close-btn" onClick={closeModals}>✕</button>
+                        </div>
+                        <div className="flight-plan-content" style={{ gap: '8px' }}>
+                            <div className="fp-row" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <span className="fp-label">Displayed Callsign</span>
+                                <input
+                                    className="fp-value"
+                                    value={callsignInput}
+                                    onChange={(e) => setCallsignInput(e.target.value)}
+                                    placeholder="Enter callsign"
+                                />
+                            </div>
+                            <div className="fp-row" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                                <button onClick={() => {
+                                    if ((window as any).setFlightPlanCallsign && state.selectedAircraft) {
+                                        (window as any).setFlightPlanCallsign(state.selectedAircraft.playerName, callsignInput || "");
+                                        (window as any).showToast?.('Callsign updated', 'success');
+                                    }
+                                    closeModals();
+                                }}>Save</button>
+                                <button onClick={closeModals}>Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
             {state.contextMenuAircraft && (
                 <ContextMenu
