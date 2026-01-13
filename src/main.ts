@@ -206,7 +206,7 @@ const antialias = false;
             const stored = JSON.parse(cached) as { [key: string]: { fp: FlightPlanData; ts: number } };
             const now = Date.now();
             
-            Object.entries(stored).forEach(([key, { fp, ts }]) => {
+            Object.entries(stored).forEach(([, { fp, ts }]) => {
                 if (now - ts < FLIGHT_PLAN_TTL_MS) {
                     // Plan is still valid
                     flightPlans[fp.robloxName] = fp;
@@ -373,7 +373,7 @@ const antialias = false;
             const res = await fetch(`${HTTP_API_BASE}${route}`);
             if (!res.ok) return;
             
-            const acftData = await res.json() as AircraftCollection;
+            await res.json() as AircraftCollection;
             // For now, we're just fetching to verify connectivity
             // Flight plan data should come via WebSocket FLIGHT_PLAN events
         } catch (err) {
