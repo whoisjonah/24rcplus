@@ -3,6 +3,7 @@ import { JSX, ReactNode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import IslandToAirportMap from "../data/IslandToAirportMap.json";
 import AssetManager from '../AssetManager';
+import config from '../config';
 
 let assetManager: AssetManager;
 
@@ -131,9 +132,23 @@ function MapsSection() {
 }
 
 function MainMenu() {
+    const [, forceUpdate] = useState({});
+
+    const adjustLabelScale = (delta: number) => {
+        const next = Math.round(((config.labelScale || 1) + delta) * 100) / 100;
+        const setter = (window as any).setLabelScale as ((scale: number) => void) | undefined;
+        setter?.(next);
+        forceUpdate({});
+    };
+    
     return (<>
         <Button onClick={() => setMenuId(Menus.AptSelectMenu)}>APT SELECT</Button>
         <Button disabled>RANGE<br />50</Button>
+        <div>
+            <Button onClick={() => adjustLabelScale(-0.1)}>-LBL</Button>
+            <Button disabled>{Math.round((config.labelScale || 1) * 100)}%</Button>
+            <Button onClick={() => adjustLabelScale(0.1)}>+LBL</Button>
+        </div>
         <div>
             <Button disabled>PLACE CNTR</Button>
             <Button disabled>OFF CNTR</Button>
@@ -149,11 +164,50 @@ function MainMenu() {
             <Button disabled>LDR DIR<br />N</Button>
             <Button disabled>LDR<br />2</Button>
         </div>
-        <Button disabled>CHAR SIZE</Button>
         <Button disabled>PREF</Button>
         <div>
             <Button disabled>SSA FILTER</Button>
             <Button disabled>GI TEXT FILTER</Button>
+        </div>
+        <Button 
+            pressed={config.hideGroundTraffic} 
+            onClick={() => {
+                config.hideGroundTraffic = !config.hideGroundTraffic;
+                forceUpdate({});
+            }}
+        >HIDE<br />GND</Button>
+        <div>
+            <Button 
+                pressed={config.showFixes} 
+                onClick={() => {
+                    config.showFixes = !config.showFixes;
+                    (window as any).refreshFixes?.();
+                    forceUpdate({});
+                }}
+            >FIXES</Button>
+            <Button 
+                pressed={config.showPTL} 
+                onClick={() => {
+                    config.showPTL = !config.showPTL;
+                    forceUpdate({});
+                }}
+            >PTL</Button>
+        </div>
+        <div>
+            <Button 
+                pressed={config.showSIDs} 
+                onClick={() => {
+                    config.showSIDs = !config.showSIDs;
+                    forceUpdate({});
+                }}
+            >SIDs</Button>
+            <Button 
+                pressed={config.showSTARs} 
+                onClick={() => {
+                    config.showSTARs = !config.showSTARs;
+                    forceUpdate({});
+                }}
+            >STARs</Button>
         </div>
         <Button disabled>SHIFT</Button>
     </>)

@@ -59,6 +59,39 @@ body {
     display: flex;
     flex-direction: row;
     height: 80px;
+    transition: transform 0.3s ease;
+}
+
+#dcb.hidden {
+    transform: translateY(-100%);
+}
+
+#toolbar-toggle {
+    position: fixed;
+    top: 0;
+    right: 50%;
+    transform: translateX(50%);
+    width: 80px;
+    height: 24px;
+    background-color: #002C00;
+    border: 2px outset #555555;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    color: #eee;
+    font-size: 10pt;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    z-index: 1000;
+    transition: top 0.3s ease;
+}
+
+#toolbar-toggle:hover {
+    color: #FFFF99;
+}
+
+#toolbar-toggle.toolbar-hidden {
+    top: 0;
 }
 
 /* full height buttons */
@@ -244,47 +277,43 @@ body {
     padding: 20px;
 }
 
-.fp-section {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: rgba(0, 255, 0, 0.03);
-    border-left: 3px solid #00ff00;
-}
-
-.fp-section h3 {
-    margin: 0 0 12px 0;
-    color: #00ff00;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
 .fp-row {
     display: flex;
-    justify-content: space-between;
-    padding: 6px 0;
-    border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+    gap: 10px;
+    margin-bottom: 12px;
+    align-items: flex-start;
 }
 
-.fp-row:last-child {
-    border-bottom: none;
+.fp-cell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .fp-label {
     color: #8f8f8f;
     font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .fp-value {
+    background: rgba(0, 255, 0, 0.05);
+    border: 1px solid #00ff00;
     color: #fff;
-    font-weight: bold;
-    text-align: right;
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 2px;
+    font-family: monospace;
 }
 
-.fp-value.squawk {
-    color: #ffff00;
-    font-size: 16px;
-    letter-spacing: 2px;
+.fp-value:disabled {
+    cursor: default;
+}
+
+.route-input {
+    width: 100%;
 }
 
 /* Assignment Panel */
@@ -487,4 +516,80 @@ body {
     margin: 0;
     color: #00ffff;
     font-size: 11px;
+}
+/* Assume Button */
+.assume-button-container {
+    pointer-events: auto;
+}
+
+.assume-btn {
+    background: #00ff00;
+    border: 2px solid #00ff00;
+    color: #000;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.assume-btn:hover {
+    background: #ffff00;
+    border-color: #ffff00;
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+    transform: scale(1.05);
+}
+
+.assume-btn:active {
+    transform: scale(0.98);
+}
+
+/* Context Menu */
+.context-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.context-menu {
+    background: #1a1a1a;
+    border: 2px solid #00ff00;
+    border-radius: 4px;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+    min-width: 120px;
+    z-index: 10001;
+}
+
+.context-menu-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    color: #00ff00;
+    font-size: 12px;
+    font-weight: bold;
+    font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.context-menu-item:hover {
+    background: rgba(0, 255, 0, 0.1);
+    color: #ffff00;
+    padding-left: 20px;
+}
+
+.context-menu-item:active {
+    background: rgba(0, 255, 0, 0.2);
 }

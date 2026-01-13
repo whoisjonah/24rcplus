@@ -15,6 +15,7 @@ export default class AircraftTrack {
     tails: { graphic: Graphics, position: Position, ttl: number }[] = [];
     ttl = ACFT_TTL;
     ptl: Graphics; // Predicted track line
+    isAssumed: boolean = false;
 
     /**
      * 
@@ -81,9 +82,10 @@ export default class AircraftTrack {
         this.acftData = acftData;
 
         this.ptl.clear(); // We're not doing this every frame so it's okay
-        if (!acftData.isOnGround && config.showPTL) {
+        if (!acftData.isOnGround && config.showPTL && this.isAssumed) {
             // Magic number found through comparing coordinates at set speed at set interval. TODO: find what equation produces this number.
-            const ptlLength = 0.3256 * acftData.groundSpeed
+            // Reduced to 1/3 of original length for better visibility
+            const ptlLength = (0.3256 * acftData.groundSpeed) / 3
             const [ptlX, ptlY] = headingToCartesian(ptlLength, acftData.heading);
             this.ptl.lineTo(ptlX, ptlY);
             this.ptl.stroke({ color: 0xffffff, pixelLine: true });

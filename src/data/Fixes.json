@@ -1,0 +1,844 @@
+{
+  "fixes": [
+    {
+      "name": "SHELL",
+      "x": -8831,
+      "y": -13465,
+      "type": "waypoint"
+    },
+    {
+      "name": "NIKON",
+      "x": -4080,
+      "y": -14120,
+      "type": "waypoint"
+    },
+    {
+      "name": "CHILY",
+      "x": 1105,
+      "y": -13550,
+      "type": "waypoint"
+    },
+    {
+      "name": "SHIBA",
+      "x": -6160,
+      "y": -12582,
+      "type": "waypoint"
+    },
+    {
+      "name": "LETSE",
+      "x": -1636,
+      "y": -11728,
+      "type": "waypoint"
+    },
+    {
+      "name": "HONDA",
+      "x": 2057,
+      "y": -11740,
+      "type": "waypoint"
+    },
+    {
+      "name": "ASTRO",
+      "x": -5257,
+      "y": -10239,
+      "type": "waypoint"
+    },
+    {
+      "name": "HME",
+      "x": -2858,
+      "y": -10677,
+      "type": "vordme"
+    },
+    {
+      "name": "GULEG",
+      "x": -7411,
+      "y": -8614,
+      "type": "waypoint"
+    },
+    {
+      "name": "PIPER",
+      "x": -4548,
+      "y": -8371,
+      "type": "waypoint"
+    },
+    {
+      "name": "ONDER",
+      "x": -1999,
+      "y": -7691,
+      "type": "waypoint"
+    },
+    {
+      "name": "KNIFE",
+      "x": 354,
+      "y": -8266,
+      "type": "waypoint"
+    },
+    {
+      "name": "TUDEP",
+      "x": -5461,
+      "y": -6087,
+      "type": "waypoint"
+    },
+    {
+      "name": "ALLRY",
+      "x": 2003,
+      "y": -6068,
+      "type": "waypoint"
+    },
+    {
+      "name": "CRAZY",
+      "x": 6071,
+      "y": -11731,
+      "type": "waypoint"
+    },
+    {
+      "name": "WOTAN",
+      "x": 11278,
+      "y": -11117,
+      "type": "waypoint"
+    },
+    {
+      "name": "WAGON",
+      "x": 14463,
+      "y": -10041,
+      "type": "waypoint"
+    },
+    {
+      "name": "COC",
+      "x": 5016,
+      "y": -9129,
+      "type": "vortac"
+    },
+    {
+      "name": "WELLS",
+      "x": 8174,
+      "y": -8761,
+      "type": "waypoint"
+    },
+    {
+      "name": "SQUID",
+      "x": 12005,
+      "y": -8705,
+      "type": "waypoint"
+    },
+    {
+      "name": "ZESTA",
+      "x": 15345,
+      "y": -7799,
+      "type": "waypoint"
+    },
+    {
+      "name": "TINDR",
+      "x": 3397,
+      "y": -7470,
+      "type": "waypoint"
+    },
+    {
+      "name": "PER",
+      "x": 5262,
+      "y": -6944,
+      "type": "vordme"
+    },
+    {
+      "name": "BTM",
+      "x": 7996,
+      "y": -6638,
+      "type": "vortac"
+    },
+    {
+      "name": "NOONU",
+      "x": 9645,
+      "y": -6362,
+      "type": "waypoint"
+    },
+    {
+      "name": "KELLA",
+      "x": 11308,
+      "y": -6268,
+      "type": "waypoint"
+    },
+    {
+      "name": "STRAX",
+      "x": 3969,
+      "y": -5783,
+      "type": "waypoint"
+    },
+    {
+      "name": "ORG",
+      "x": 6165,
+      "y": -5093,
+      "type": "vortac"
+    },
+    {
+      "name": "TALIS",
+      "x": 8508,
+      "y": -3896,
+      "type": "waypoint"
+    },
+    {
+      "name": "SISTA",
+      "x": 10661,
+      "y": -4234,
+      "type": "waypoint"
+    },
+    {
+      "name": "UDMUG",
+      "x": 16759,
+      "y": -4687,
+      "type": "waypoint"
+    },
+    {
+      "name": "ROSMO",
+      "x": 13171,
+      "y": -3197,
+      "type": "waypoint"
+    },
+    {
+      "name": "LLIME",
+      "x": 17791,
+      "y": -2783,
+      "type": "waypoint"
+    },
+    {
+      "name": "CAMEL",
+      "x": 7009,
+      "y": -2107,
+      "type": "waypoint"
+    },
+    {
+      "name": "DUNKS",
+      "x": 9371,
+      "y": -1987,
+      "type": "waypoint"
+    },
+    {
+      "name": "HOT",
+      "x": 11783,
+      "y": -1544,
+      "type": "vortac"
+    },
+    {
+      "name": "MORRD",
+      "x": 16766,
+      "y": -660,
+      "type": "waypoint"
+    },
+    {
+      "name": "CYRIL",
+      "x": 8796,
+      "y": 146,
+      "type": "waypoint"
+    },
+    {
+      "name": "TRE",
+      "x": 11635,
+      "y": 230,
+      "type": "vortac"
+    },
+    {
+      "name": "NJF",
+      "x": 15131,
+      "y": 61,
+      "type": "vordme"
+    },
+    {
+      "name": "IZO",
+      "x": 14784,
+      "y": 1344,
+      "type": "vordme"
+    },
+    {
+      "name": "DIZ",
+      "x": 16114,
+      "y": 1520,
+      "type": "vortac"
+    },
+    {
+      "name": "DOGGO",
+      "x": 11914,
+      "y": 2418,
+      "type": "waypoint"
+    },
+    {
+      "name": "ABSRS",
+      "x": 18280,
+      "y": 2230,
+      "type": "waypoint"
+    },
+    {
+      "name": "BILLO",
+      "x": 15608,
+      "y": 3719,
+      "type": "waypoint"
+    },
+    {
+      "name": "JUSTY",
+      "x": 12706,
+      "y": 5345,
+      "type": "waypoint"
+    },
+    {
+      "name": "DET",
+      "x": 15509,
+      "y": 5929,
+      "type": "vortac"
+    },
+    {
+      "name": "CHAIN",
+      "x": 18280,
+      "y": 6323,
+      "type": "waypoint"
+    },
+    {
+      "name": "RENTS",
+      "x": 8403,
+      "y": 7394,
+      "type": "waypoint"
+    },
+    {
+      "name": "GRASS",
+      "x": 5861,
+      "y": 8557,
+      "type": "waypoint"
+    },
+    {
+      "name": "KIN",
+      "x": 9783,
+      "y": 9212,
+      "type": "vortac"
+    },
+    {
+      "name": "JACKI",
+      "x": 11226,
+      "y": 9834,
+      "type": "waypoint"
+    },
+    {
+      "name": "DEBUG",
+      "x": 15578,
+      "y": 9835,
+      "type": "waypoint"
+    },
+    {
+      "name": "LCK",
+      "x": 6904,
+      "y": 10591,
+      "type": "vordme"
+    },
+    {
+      "name": "PFO",
+      "x": 9998,
+      "y": 11471,
+      "type": "vordme"
+    },
+    {
+      "name": "BOBUX",
+      "x": 13141,
+      "y": 11794,
+      "type": "waypoint"
+    },
+    {
+      "name": "NUBER",
+      "x": 18249,
+      "y": 12294,
+      "type": "waypoint"
+    },
+    {
+      "name": "AQWRT",
+      "x": 4942,
+      "y": 12107,
+      "type": "waypoint"
+    },
+    {
+      "name": "CAN",
+      "x": 3122,
+      "y": 13072,
+      "type": "vortac"
+    },
+    {
+      "name": "FORIA",
+      "x": 2003,
+      "y": 14055,
+      "type": "waypoint"
+    },
+    {
+      "name": "DIR",
+      "x": 3999,
+      "y": 14733,
+      "type": "vortac"
+    },
+    {
+      "name": "HUT",
+      "x": 9837,
+      "y": 13179,
+      "type": "vortac"
+    },
+    {
+      "name": "MUONE",
+      "x": 12727,
+      "y": 14065,
+      "type": "waypoint"
+    },
+    {
+      "name": "JAZZR",
+      "x": 15546,
+      "y": 14080,
+      "type": "waypoint"
+    },
+    {
+      "name": "CAWZE",
+      "x": 6223,
+      "y": 2539,
+      "type": "waypoint"
+    },
+    {
+      "name": "DEL",
+      "x": 9276,
+      "y": 3783,
+      "type": "vortac"
+    },
+    {
+      "name": "CLR",
+      "x": 6682,
+      "y": 4981,
+      "type": "vortac"
+    },
+    {
+      "name": "ANYMS",
+      "x": 4721,
+      "y": 6111,
+      "type": "waypoint"
+    },
+    {
+      "name": "GERLD",
+      "x": -5513,
+      "y": -5129,
+      "type": "waypoint"
+    },
+    {
+      "name": "RENDR",
+      "x": -4152,
+      "y": -4793,
+      "type": "waypoint"
+    },
+    {
+      "name": "JOOPY",
+      "x": -979,
+      "y": -5138,
+      "type": "waypoint"
+    },
+    {
+      "name": "PROBE",
+      "x": -2801,
+      "y": -3499,
+      "type": "waypoint"
+    },
+    {
+      "name": "DINER",
+      "x": 1025,
+      "y": -3315,
+      "type": "waypoint"
+    },
+    {
+      "name": "ROM",
+      "x": 2761,
+      "y": -3602,
+      "type": "vortac"
+    },
+    {
+      "name": "WELSH",
+      "x": -4166,
+      "y": -1503,
+      "type": "waypoint"
+    },
+    {
+      "name": "RES",
+      "x": -288,
+      "y": -1362,
+      "type": "vortac"
+    },
+    {
+      "name": "VOX",
+      "x": 3602,
+      "y": -1482,
+      "type": "vortac"
+    },
+    {
+      "name": "INDEX",
+      "x": -2343,
+      "y": -233,
+      "type": "waypoint"
+    },
+    {
+      "name": "GAVIN",
+      "x": 1796,
+      "y": 463,
+      "type": "waypoint"
+    },
+    {
+      "name": "SILVA",
+      "x": 5501,
+      "y": 525,
+      "type": "waypoint"
+    },
+    {
+      "name": "OCEEN",
+      "x": 3556,
+      "y": 1752,
+      "type": "waypoint"
+    },
+    {
+      "name": "ENDER",
+      "x": -6997,
+      "y": 228,
+      "type": "waypoint"
+    },
+    {
+      "name": "SUNST",
+      "x": -8746,
+      "y": 1694,
+      "type": "waypoint"
+    },
+    {
+      "name": "KENED",
+      "x": -4165,
+      "y": 1223,
+      "type": "waypoint"
+    },
+    {
+      "name": "SETHR",
+      "x": 779,
+      "y": 2551,
+      "type": "waypoint"
+    },
+    {
+      "name": "BUCFA",
+      "x": -6824,
+      "y": 2906,
+      "type": "waypoint"
+    },
+    {
+      "name": "KUNAV",
+      "x": -4149,
+      "y": 3163,
+      "type": "waypoint"
+    },
+    {
+      "name": "SAWPE",
+      "x": -9509,
+      "y": 3601,
+      "type": "waypoint"
+    },
+    {
+      "name": "ICTAM",
+      "x": -4771,
+      "y": 4152,
+      "type": "waypoint"
+    },
+    {
+      "name": "HAWFA",
+      "x": -2960,
+      "y": 3832,
+      "type": "waypoint"
+    },
+    {
+      "name": "MLR",
+      "x": -6762,
+      "y": 4880,
+      "type": "vordme"
+    },
+    {
+      "name": "BLA",
+      "x": -2928,
+      "y": 4985,
+      "type": "vordme"
+    },
+    {
+      "name": "QUEEN",
+      "x": -1099,
+      "y": 5202,
+      "type": "waypoint"
+    },
+    {
+      "name": "BEANS",
+      "x": -9339,
+      "y": 6330,
+      "type": "waypoint"
+    },
+    {
+      "name": "LOGAN",
+      "x": -7021,
+      "y": 6851,
+      "type": "waypoint"
+    },
+    {
+      "name": "LAVNO",
+      "x": 396,
+      "y": 5878,
+      "type": "waypoint"
+    },
+    {
+      "name": "ATPEV",
+      "x": 1422,
+      "y": 5463,
+      "type": "waypoint"
+    },
+    {
+      "name": "RFD",
+      "x": -1576,
+      "y": 6739,
+      "type": "vordme"
+    },
+    {
+      "name": "JAMSI",
+      "x": 2563,
+      "y": 7477,
+      "type": "waypoint"
+    },
+    {
+      "name": "MOGTA",
+      "x": -4085,
+      "y": 7787,
+      "type": "waypoint"
+    },
+    {
+      "name": "GRY",
+      "x": -5678,
+      "y": 7742,
+      "type": "vortac"
+    },
+    {
+      "name": "EXMOR",
+      "x": -6616,
+      "y": 8917,
+      "type": "waypoint"
+    },
+    {
+      "name": "PEPUL",
+      "x": -3163,
+      "y": 9612,
+      "type": "waypoint"
+    },
+    {
+      "name": "TRN",
+      "x": -1141,
+      "y": 9981,
+      "type": "vordme"
+    },
+    {
+      "name": "GODLU",
+      "x": 767,
+      "y": 9133,
+      "type": "waypoint"
+    },
+    {
+      "name": "LAZER",
+      "x": 2328,
+      "y": 9776,
+      "type": "waypoint"
+    },
+    {
+      "name": "EMJAY",
+      "x": -5262,
+      "y": 12030,
+      "type": "waypoint"
+    },
+    {
+      "name": "ODOKU",
+      "x": -1601,
+      "y": 12026,
+      "type": "waypoint"
+    },
+    {
+      "name": "TRELN",
+      "x": -3746,
+      "y": 15204,
+      "type": "waypoint"
+    },
+    {
+      "name": "REAPR",
+      "x": -804,
+      "y": 14678,
+      "type": "waypoint"
+    },
+    {
+      "name": "HACKE",
+      "x": -18226,
+      "y": 6782,
+      "type": "waypoint"
+    },
+    {
+      "name": "GEORG",
+      "x": -15448,
+      "y": 7626,
+      "type": "waypoint"
+    },
+    {
+      "name": "KRT",
+      "x": -17324,
+      "y": 8193,
+      "type": "vortac"
+    },
+    {
+      "name": "SAU",
+      "x": -15642,
+      "y": 9049,
+      "type": "vordme"
+    },
+    {
+      "name": "SEEKS",
+      "x": -12534,
+      "y": 8607,
+      "type": "waypoint"
+    },
+    {
+      "name": "HECKS",
+      "x": -18917,
+      "y": 10092,
+      "type": "waypoint"
+    },
+    {
+      "name": "PACKT",
+      "x": -16560,
+      "y": 10740,
+      "type": "waypoint"
+    },
+    {
+      "name": "BAR",
+      "x": -12987,
+      "y": 10091,
+      "type": "vortac"
+    },
+    {
+      "name": "ALDER",
+      "x": -9663,
+      "y": 11149,
+      "type": "waypoint"
+    },
+    {
+      "name": "STACK",
+      "x": -13439,
+      "y": 11921,
+      "type": "waypoint"
+    },
+    {
+      "name": "WASTE",
+      "x": -16755,
+      "y": 13537,
+      "type": "waypoint"
+    },
+    {
+      "name": "HOGGS",
+      "x": -10125,
+      "y": 13246,
+      "type": "waypoint"
+    },
+    {
+      "name": "BULLY",
+      "x": -11343,
+      "y": -9951,
+      "type": "waypoint"
+    },
+    {
+      "name": "FROOT",
+      "x": -13443,
+      "y": -7445,
+      "type": "waypoint"
+    },
+    {
+      "name": "EURAD",
+      "x": -9233,
+      "y": -6725,
+      "type": "waypoint"
+    },
+    {
+      "name": "BOBOS",
+      "x": -15602,
+      "y": -5374,
+      "type": "waypoint"
+    },
+    {
+      "name": "BLANK",
+      "x": -8364,
+      "y": -4774,
+      "type": "waypoint"
+    },
+    {
+      "name": "THENR",
+      "x": -13484,
+      "y": -4257,
+      "type": "waypoint"
+    },
+    {
+      "name": "ACRES",
+      "x": -17124,
+      "y": -3589,
+      "type": "waypoint"
+    },
+    {
+      "name": "YOUTH",
+      "x": -11050,
+      "y": -2953,
+      "type": "waypoint"
+    },
+    {
+      "name": "UWAIS",
+      "x": -18809,
+      "y": -1925,
+      "type": "waypoint"
+    },
+    {
+      "name": "GVK",
+      "x": -14850,
+      "y": -1132,
+      "type": "vordme"
+    },
+    {
+      "name": "HAW",
+      "x": -13515,
+      "y": -2025,
+      "type": "vortac"
+    },
+    {
+      "name": "EZYDB",
+      "x": -8243,
+      "y": -1477,
+      "type": "waypoint"
+    },
+    {
+      "name": "GOL",
+      "x": -16315,
+      "y": -798,
+      "type": "vortac"
+    },
+    {
+      "name": "FRANK",
+      "x": -18618,
+      "y": 640,
+      "type": "waypoint"
+    },
+    {
+      "name": "CELAR",
+      "x": -12680,
+      "y": 1690,
+      "type": "waypoint"
+    },
+    {
+      "name": "THACC",
+      "x": -18651,
+      "y": 3458,
+      "type": "waypoint"
+    },
+    {
+      "name": "SHREK",
+      "x": -15674,
+      "y": 3749,
+      "type": "waypoint"
+    },
+    {
+      "name": "SPACE",
+      "x": -12548,
+      "y": 4357,
+      "type": "waypoint"
+    }
+  ]
+}

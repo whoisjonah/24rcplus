@@ -13,17 +13,19 @@ export default function AssignmentPanel({ aircraft, onClose, onAssign }: Assignm
     const [speed, setSpeed] = useState(Math.round(aircraft.speed));
 
     const handleAssign = (type: 'heading' | 'altitude' | 'speed') => {
+        let value = 0;
         switch (type) {
             case 'heading':
-                onAssign('heading', heading);
+                value = heading;
                 break;
             case 'altitude':
-                onAssign('altitude', altitude * 100);
+                value = altitude * 100;
                 break;
             case 'speed':
-                onAssign('speed', speed);
+                value = speed;
                 break;
         }
+        onAssign(type, value);
     };
 
     return (
@@ -120,7 +122,7 @@ export default function AssignmentPanel({ aircraft, onClose, onAssign }: Assignm
                     </div>
 
                     <div className="assignment-info">
-                        <p>💡 Click on heading/altitude/speed values in the data block to quickly assign</p>
+                        <p>💡 Press ASSIGN to send the command to the aircraft</p>
                     </div>
                 </div>
             </div>

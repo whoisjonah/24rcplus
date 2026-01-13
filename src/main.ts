@@ -9,8 +9,28 @@ import DistanceTool from "./components/DistanceTool";
 import AssetManager from "./AssetManager";
 import DisplayControlBar from "./components/DisplayControlBar";
 import AircraftLabel from "./components/AircraftLabel";
+import FixesLayer from "./components/FixesLayer";
 import createWebSocketManager from "./ws/Connector";
-import { initializeModalManager, showFlightPlanModal, showAssignmentModal, updateAircraftData } from "./components/ModalManager";
+import { initializeModalManager, showFlightPlanModal, showContextMenu, hideContextMenu, updateAircraftData } from "./components/ModalManager";
+
+// Toolbar toggle functionality
+let toolbarVisible = true;
+(window as any).toggleToolbar = () => {
+    toolbarVisible = !toolbarVisible;
+    const dcb = document.getElementById('dcb');
+    const toggle = document.getElementById('toolbar-toggle');
+    if (dcb && toggle) {
+        if (toolbarVisible) {
+            dcb.classList.remove('hidden');
+            toggle.textContent = '▼';
+            toggle.classList.remove('toolbar-hidden');
+        } else {
+            dcb.classList.add('hidden');
+            toggle.textContent = '▲';
+            toggle.classList.add('toolbar-hidden');
+        }
+    }
+};
 
 // const pollAuthority = "http://localhost:3000";
 // const POLL_INTERVAL = 3000;
@@ -84,7 +104,8 @@ const antialias = false;
     
     // Expose modal functions globally for AircraftLabel
     (window as any).showFlightPlanModal = showFlightPlanModal;
-    (window as any).showAssignmentModal = showAssignmentModal;
+    (window as any).showContextMenu = showContextMenu;
+    (window as any).hideContextMenu = hideContextMenu;
     
     const basemap = new Container();
     const trackContainer = new Container();
@@ -103,6 +124,11 @@ const antialias = false;
     assetManager.loadAsset("global/boundaries");
 
     new DisplayControlBar(assetManager);
+
+    // Fixes layer
+    ////////////////////////
+    const fixesLayer = new FixesLayer(trackContainer, basemap);
+    (window as any).refreshFixes = () => fixesLayer.updatePosition();
 
     // Distance tool stuff
     ////////////////////////
@@ -168,11 +194,6 @@ const antialias = false;
             config.showPTL = !config.showPTL;
             positionGraphics();
         }
-        // Toggle show only assumed aircraft
-        else if (ev.key.toUpperCase() === "A") {
-            config.showOnlyAssumed = !config.showOnlyAssumed;
-            showToast(`Show only assumed: ${config.showOnlyAssumed ? 'ON' : 'OFF'}`, 'info');
-        }
         // Toggle hide ground traffic
         else if (ev.key.toUpperCase() === "G") {
             config.hideGroundTraffic = !config.hideGroundTraffic;
@@ -182,11 +203,38 @@ const antialias = false;
         else if (ev.key.toUpperCase() === "F") {
             config.showFixes = !config.showFixes;
             showToast(`Show fixes: ${config.showFixes ? 'ON' : 'OFF'}`, 'info');
+            fixesLayer.updatePosition(); // Update fixes visibility
         }
     });
 
     let acftTracks: AircraftTrack[] = [];
     let acftLabels: AircraftLabel[] = [];
+
+    // Allow UI to scale label font sizes
+    (window as any).setLabelScale = (scale: number) => {
+        const clamped = Math.max(0.5, Math.min(2, scale || 1));
+        config.labelScale = clamped;
+        acftLabels.forEach(label => label.applyFontScale());
+    };
+
+    // Expose toggleAssumedAircraft globally
+    (window as any).toggleAssumedAircraft = (callsign: string) => {
+        const label = acftLabels.find(l => l.acftData.callsign === callsign);
+        if (label) {
+            label.isAssumed = !label.isAssumed;
+            label.formatText();
+            label.updateGraphics();
+            label.scratchPad.updatePosition();
+            label.scratchPad.updateText();
+            
+            // Update corresponding track's PTL
+            const track = acftTracks.find(t => t.acftData.callsign === callsign);
+            if (track) {
+                track.isAssumed = label.isAssumed;
+                track.updateData(track.acftData);
+            }
+        }
+    };
 
     // Resizing and moving
     ////////////////////////
@@ -194,6 +242,7 @@ const antialias = false;
         acftTracks.forEach(acftTrack => acftTrack.positionGraphics());
         acftLabels.forEach(label => label.tickUpdate());
         distanceTool.positionGraphics();
+        fixesLayer.updatePosition();
     }
 
     app.renderer.on("resize", (w, h) => {
@@ -254,12 +303,6 @@ const antialias = false;
         // Filter based on config settings
         if (config.hideGroundTraffic) {
             acftDatas = acftDatas.filter(acft => !acft.isOnGround);
-        }
-        
-        if (config.showOnlyAssumed) {
-            // Only show assumed aircraft
-            const assumedCallsigns = acftLabels.filter(label => label.isAssumed).map(label => label.acftData.callsign);
-            acftDatas = acftDatas.filter(acft => assumedCallsigns.includes(acft.callsign));
         }
         
         // Update aircraft data for modal manager
