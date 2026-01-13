@@ -37,6 +37,7 @@ let toolbarVisible = true;
 // const POLL_ROUTES = ["/acft-data", "/acft-data/event"];
 const ROUTE_SWITCH_DELAY = 1000;
 const WS_URL = "wss://24data.ptfs.app/wss";
+const HTTP_API_BASE = "https://24data.ptfs.app";
 const DOUBLE_CLICK_MS = 300;
 const DOUBLE_CLICK_DISTANCE = 200;
 
@@ -184,33 +185,69 @@ const antialias = false;
         showToast(`Event mode ${eventModeWS ? 'ON' : 'OFF'}`, 'info');
     }
 
-    window.addEventListener("keydown", ev => {
-        // If the user typesinto a label dont trigger hotkeys
-        if (acftLabels.some(label => label.scratchPad.isBeingEdited)) return;
-
-        // Toggle for Predicted track lines
-        if (ev.key.toUpperCase() === "P") {
-            config.showPTL = !config.showPTL;
-            positionGraphics();
-        }
-        // Toggle hide ground traffic
-        else if (ev.key.toUpperCase() === "G") {
-            config.hideGroundTraffic = !config.hideGroundTraffic;
-            showToast(`Hide ground traffic: ${config.hideGroundTraffic ? 'ON' : 'OFF'}`, 'info');
-        }
-        // Toggle show fixes
-        else if (ev.key.toUpperCase() === "F") {
-            config.showFixes = !config.showFixes;
-            showToast(`Show fixes: ${config.showFixes ? 'ON' : 'OFF'}`, 'info');
-            fixesLayer.updatePosition(); // Update fixes visibility
-        }
-    });
+    // Keybinds removed (P/G/F) by request; use UI controls instead
 
     let acftTracks: AircraftTrack[] = [];
     let acftLabels: AircraftLabel[] = [];
+    const assumedPlayers = new Set<string>();
 
-    // Flight plan storage keyed by robloxName/playerName
+    // Flight plan storage keyed by robloxName/playerName and realcallsign
     const flightPlans: { [playerName: string]: FlightPlanData } = {};
+    const flightPlansByRealCallsign: { [realcallsign: string]: FlightPlanData } = {};
+    const flightPlansByPlayer: { [normPlayer: string]: FlightPlanData } = {};
+
+    const FLIGHT_PLAN_CACHE_KEY = "24rc_flight_plans";
+    const FLIGHT_PLAN_TTL_MS = 45 * 60 * 1000; // 45 minutes
+
+    function loadCachedFlightPlans() {
+        try {
+            const cached = localStorage.getItem(FLIGHT_PLAN_CACHE_KEY);
+            if (!cached) return;
+            const stored = JSON.parse(cached) as { [key: string]: { fp: FlightPlanData; ts: number } };
+            const now = Date.now();
+            
+            Object.entries(stored).forEach(([key, { fp, ts }]) => {
+                if (now - ts < FLIGHT_PLAN_TTL_MS) {
+                    // Plan is still valid
+                    flightPlans[fp.robloxName] = fp;
+                    const pnNorm = normalizePlayer(fp.robloxName);
+                    if (pnNorm) flightPlansByPlayer[pnNorm] = fp;
+                    const rcNorm = normalizeCallsign(fp.realcallsign);
+                    if (rcNorm) flightPlansByRealCallsign[rcNorm] = fp;
+                    if (fp.callsign && !flightPlanCallsigns[fp.robloxName]) {
+                        flightPlanCallsigns[fp.robloxName] = fp.callsign;
+                    }
+                    console.log(`📦 Loaded cached FP for ${fp.robloxName}: ${fp.callsign}`);
+                }
+            });
+        } catch (e) {
+            console.error("Failed to load cached flight plans:", e);
+        }
+    }
+
+    function saveFlightPlanToCache(fp: FlightPlanData) {
+        try {
+            const cached = localStorage.getItem(FLIGHT_PLAN_CACHE_KEY);
+            const stored = cached ? JSON.parse(cached) : {};
+            stored[fp.robloxName] = { fp, ts: Date.now() };
+            localStorage.setItem(FLIGHT_PLAN_CACHE_KEY, JSON.stringify(stored));
+        } catch (e) {
+            console.error("Failed to save flight plan to cache:", e);
+        }
+    }
+
+    // Load cached flight plans on startup
+    loadCachedFlightPlans();
+
+    function normalizeCallsign(cs: string | undefined | null): string | undefined {
+        if (!cs) return undefined;
+        return cs.trim().replace(/\s+/g, "").toUpperCase();
+    }
+
+    function normalizePlayer(p: string | undefined | null): string | undefined {
+        if (!p) return undefined;
+        return p.trim().toUpperCase();
+    }
 
     // Manual overrides for flight plan callsign
     const flightPlanCallsigns: { [playerName: string]: string } = {};
@@ -249,6 +286,12 @@ const antialias = false;
             label.updateGraphics();
             label.scratchPad.updatePosition();
             label.scratchPad.updateText();
+
+            if (label.isAssumed) {
+                assumedPlayers.add(label.acftData.playerName);
+            } else {
+                assumedPlayers.delete(label.acftData.playerName);
+            }
             
             // Update corresponding track's PTL
             const track = acftTracks.find(t => t.acftData.callsign === callsign);
@@ -318,6 +361,26 @@ const antialias = false;
         reconnectMax: 30000,
     });
 
+    // Poll HTTP API for aircraft data to check for flight plan fields (backup method)
+    let lastAcftDataFetch = 0;
+    setInterval(async () => {
+        try {
+            const now = Date.now();
+            if (now - lastAcftDataFetch < 2000) return; // Rate limit to 2s min
+            lastAcftDataFetch = now;
+
+            const route = eventModeWS ? "/acft-data/event" : "/acft-data";
+            const res = await fetch(`${HTTP_API_BASE}${route}`);
+            if (!res.ok) return;
+            
+            const acftData = await res.json() as AircraftCollection;
+            // For now, we're just fetching to verify connectivity
+            // Flight plan data should come via WebSocket FLIGHT_PLAN events
+        } catch (err) {
+            // Silently fail on HTTP errors
+        }
+    }, 3000); // Poll every 3 seconds as recommended
+
     wsManager.start();
 
     function processData(acftCollection: AircraftCollection) {
@@ -325,14 +388,20 @@ const antialias = false;
         
         // Populate flight plan fields from stored flight plans and overrides
         acftDatas = acftDatas.map(acftData => {
-            const plan = flightPlans[acftData.playerName];
+            // Prefer mapping by normalized realcallsign (the in-game callsign key), fallback to playerName
+            const csNorm = normalizeCallsign(acftData.callsign);
+            const pnNorm = normalizePlayer(acftData.playerName);
+            const plan = (csNorm && flightPlansByRealCallsign[csNorm])
+                || (pnNorm && flightPlansByPlayer[pnNorm])
+                || flightPlans[acftData.playerName];
+            
             const manualCallsign = flightPlanCallsigns[acftData.playerName];
             const planCallsign = plan?.callsign;
 
             return {
                 ...acftData,
                 flightPlanCallsign: manualCallsign || planCallsign,
-                flightPlanRoute: plan?.route && plan.route !== "N/A" ? plan.route : plan?.route, // keep provided route even if N/A
+                flightPlanRoute: plan?.route && plan.route !== "N/A" ? plan.route : plan?.route,
                 flightPlanOrigin: plan?.departing,
                 flightPlanDestination: plan?.arriving,
                 flightPlanRules: plan?.flightrules,
@@ -341,9 +410,9 @@ const antialias = false;
             };
         });
         
-        // Filter based on config settings
+        // Filter based on config settings; assumed aircraft always shown
         if (config.hideGroundTraffic) {
-            acftDatas = acftDatas.filter(acft => !acft.isOnGround);
+            acftDatas = acftDatas.filter(acft => !acft.isOnGround || assumedPlayers.has(acft.playerName));
         }
         
         // Update aircraft data for modal manager
@@ -372,6 +441,7 @@ const antialias = false;
         // Data that cannot be found in existing tracks
         const newAcftDatas = acftDatas.filter(acftData => !acftTracks.find(track => track.acftData.playerName === acftData.playerName));
         newAcftDatas.forEach(acftData => {
+            console.log(`✈️  New aircraft: ${acftData.callsign} (${acftData.playerName}) - FP callsign: ${acftData.flightPlanCallsign || 'N/A'}`);
             const track = new AircraftTrack(acftData, trackContainer, basemap);
             acftTracks.push(track);
             track.positionGraphics();
@@ -408,12 +478,19 @@ const antialias = false;
         // Capture flight plan payloads (main and event)
         if (msg.t === "FLIGHT_PLAN" || msg.t === "FLIGHTPLAN" || msg.t === "EVENT_FLIGHT_PLAN") {
             const fp = msg.d as FlightPlanData;
+            console.log("🛫 FLIGHT_PLAN EVENT:", { t: msg.t, robloxName: fp?.robloxName, callsign: fp?.callsign, realcallsign: fp?.realcallsign });
             if (fp && fp.robloxName) {
                 flightPlans[fp.robloxName] = fp;
-                // Populate default callsign override from flight plan unless user manually overrides later
+                const pnNorm = normalizePlayer(fp.robloxName);
+                if (pnNorm) flightPlansByPlayer[pnNorm] = fp;
+                const rcNorm = normalizeCallsign(fp.realcallsign);
+                if (rcNorm) flightPlansByRealCallsign[rcNorm] = fp;
                 if (fp.callsign && !flightPlanCallsigns[fp.robloxName]) {
                     flightPlanCallsigns[fp.robloxName] = fp.callsign;
                 }
+                // Save to localStorage so it persists for 45 minutes even if bot restarts
+                saveFlightPlanToCache(fp);
+                console.log(`   ✅ Stored FP for ${fp.robloxName}`);
             }
             return;
         }

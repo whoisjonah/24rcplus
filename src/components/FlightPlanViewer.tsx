@@ -30,8 +30,13 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
     const destination = aircraft.flightPlanDestination || "ITKO";
     const rules = aircraft.flightPlanRules || "";
     const filedAircraft = aircraft.flightPlanAircraft || aircraft.aircraftType;
-    const flightLevel = (aircraft.flightPlanLevel && aircraft.flightPlanLevel.toString().padStart(3, '0'))
-        || `${Math.round(aircraft.altitude / 100).toString().padStart(3, '0')}`;
+    // Display flight level: below FL100 show two digits, otherwise three
+    const flFromPlan = aircraft.flightPlanLevel ? parseInt(aircraft.flightPlanLevel, 10) : NaN;
+    const flComputed = Math.round(aircraft.altitude / 100);
+    const flDisplayBase = Number.isFinite(flFromPlan) ? flFromPlan : flComputed;
+    const flightLevel = flDisplayBase < 100 
+        ? flDisplayBase.toString().padStart(2, '0')
+        : flDisplayBase.toString();
 
     const handleSaveCallsign = () => {
         if ((window as any).setFlightPlanCallsign) {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import ContextMenu from './ContextMenu';
+import FlightPlanViewer from './FlightPlanViewer';
 import { AircraftData } from '../types';
 
 interface ModalManagerState {
@@ -129,35 +130,10 @@ function ModalManager() {
     return (
         <>
             {state.showFlightPlan && state.selectedAircraft && (
-                <div className="flight-plan-overlay" onClick={closeModals}>
-                    <div className="flight-plan-panel" style={{ maxWidth: 320 }} onClick={(e) => e.stopPropagation()}>
-                        <div className="flight-plan-header">
-                            <h2>Edit Callsign</h2>
-                            <button className="close-btn" onClick={closeModals}>✕</button>
-                        </div>
-                        <div className="flight-plan-content" style={{ gap: '8px' }}>
-                            <div className="fp-row" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                <span className="fp-label">Displayed Callsign</span>
-                                <input
-                                    className="fp-value"
-                                    value={callsignInput}
-                                    onChange={(e) => setCallsignInput(e.target.value)}
-                                    placeholder="Enter callsign"
-                                />
-                            </div>
-                            <div className="fp-row" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                                <button onClick={() => {
-                                    if ((window as any).setFlightPlanCallsign && state.selectedAircraft) {
-                                        (window as any).setFlightPlanCallsign(state.selectedAircraft.playerName, callsignInput || "");
-                                        (window as any).showToast?.('Callsign updated', 'success');
-                                    }
-                                    closeModals();
-                                }}>Save</button>
-                                <button onClick={closeModals}>Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <FlightPlanViewer
+                    aircraft={state.selectedAircraft}
+                    onClose={closeModals}
+                />
             )}
             {state.contextMenuAircraft && (
                 <ContextMenu

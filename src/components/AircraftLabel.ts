@@ -2,29 +2,9 @@ import { Container, Graphics, Text, TextStyle, Rectangle } from "pixi.js";
 import { AircraftData } from "../types";
 import config from "../config";
 
-import AirlineMapJson from "../data/AirlineMap.json";
 import { acftToScreenPos, ScreenPosition } from "../helpers/coordConversions";
 import LabelScratchPad from "./LabelScratchPad";
-const AirlineMap = new Map(Object.entries(AirlineMapJson));
-
-function callsignToIcao(callsign: string) {
-    const callsignParts = callsign.split("-");
-    const carrier = callsignParts[0];
-    const number = callsignParts[1];
-    if (!number) return carrier?.toUpperCase() || callsign; // handle missing suffix
-    const icaoCarrier = AirlineMap.get(carrier);
-    if (!icaoCarrier)
-        return;
-    return `${icaoCarrier}${number}`;
-}
-
-function callsignFallback(callsign: string) {
-    const callsignParts = callsign.split("-");
-    const carrier = callsignParts[0];
-    const number = callsignParts[1];
-    if (!number) return carrier?.toUpperCase() || callsign; // avoid "undefined"
-    return `${carrier.toUpperCase()}${number}`;
-}
+// Removed ICAO conversion: show callsign as filed/in-game directly
 
 export const unassumedTextStyle: Partial<TextStyle> = {
     fontFamily:
@@ -203,16 +183,16 @@ export default class AircraftLabel {
     formatText() {
         if (this.isDestroyed) return;
         
-        // Use flight plan callsign (set by user in command) if available, otherwise fallback
-        const commandCallsign = this.acftData.flightPlanCallsign || this.acftData.callsign;
-        const callsign = callsignToIcao(commandCallsign) || callsignFallback(commandCallsign);
+        // Show the flight plan callsign exactly as filed if present; otherwise show in-game callsign
+        const callsign = this.acftData.flightPlanCallsign || this.acftData.callsign;
         
         if (this.isAssumed) {
             // Show full data block for assumed aircraft
             this.dataBlock.style = assumedTextStyle;
             
-            // Format altitude (3 digits, pad with leading zeros if needed)
-            const altFormatted = Math.floor(this.acftData.altitude / 100).toString().padStart(3, '0');
+            // Format flight level with two digits below FL100 (drop leading zero)
+            const fl = Math.floor(this.acftData.altitude / 100);
+            const altFormatted = fl < 100 ? fl.toString().padStart(2, '0') : fl.toString();
             
             // Format speed (2-3 digits)
             const speedFormatted = Math.round(this.acftData.speed).toString();
