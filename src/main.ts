@@ -10,6 +10,7 @@ import AssetManager from "./AssetManager";
 import DisplayControlBar from "./components/DisplayControlBar";
 import AircraftLabel from "./components/AircraftLabel";
 import createWebSocketManager from "./ws/Connector";
+import { initializeModalManager, showFlightPlanModal, showAssignmentModal, updateAircraftData } from "./components/ModalManager";
 
 // const pollAuthority = "http://localhost:3000";
 // const POLL_INTERVAL = 3000;
@@ -74,6 +75,17 @@ const antialias = false;
         } catch (e) {
         }
     }
+    
+    // Expose showToast globally for modal manager
+    (window as any).showToast = showToast;
+    
+    // Initialize modal manager
+    initializeModalManager();
+    
+    // Expose modal functions globally for AircraftLabel
+    (window as any).showFlightPlanModal = showFlightPlanModal;
+    (window as any).showAssignmentModal = showAssignmentModal;
+    
     const basemap = new Container();
     const trackContainer = new Container();
     const uiContainer = new Container();
@@ -156,6 +168,21 @@ const antialias = false;
             config.showPTL = !config.showPTL;
             positionGraphics();
         }
+        // Toggle show only assumed aircraft
+        else if (ev.key.toUpperCase() === "A") {
+            config.showOnlyAssumed = !config.showOnlyAssumed;
+            showToast(`Show only assumed: ${config.showOnlyAssumed ? 'ON' : 'OFF'}`, 'info');
+        }
+        // Toggle hide ground traffic
+        else if (ev.key.toUpperCase() === "G") {
+            config.hideGroundTraffic = !config.hideGroundTraffic;
+            showToast(`Hide ground traffic: ${config.hideGroundTraffic ? 'ON' : 'OFF'}`, 'info');
+        }
+        // Toggle show fixes
+        else if (ev.key.toUpperCase() === "F") {
+            config.showFixes = !config.showFixes;
+            showToast(`Show fixes: ${config.showFixes ? 'ON' : 'OFF'}`, 'info');
+        }
     });
 
     let acftTracks: AircraftTrack[] = [];
@@ -222,7 +249,25 @@ const antialias = false;
     wsManager.start();
 
     function processData(acftCollection: AircraftCollection) {
-        const acftDatas = acftCollectionToAcftArray(acftCollection);
+        let acftDatas = acftCollectionToAcftArray(acftCollection);
+        
+        // Filter based on config settings
+        if (config.hideGroundTraffic) {
+            acftDatas = acftDatas.filter(acft => !acft.isOnGround);
+        }
+        
+        if (config.showOnlyAssumed) {
+            // Only show assumed aircraft
+            const assumedCallsigns = acftLabels.filter(label => label.isAssumed).map(label => label.acftData.callsign);
+            acftDatas = acftDatas.filter(acft => assumedCallsigns.includes(acft.callsign));
+        }
+        
+        // Update aircraft data for modal manager
+        const acftDataMap: { [key: string]: any } = {};
+        acftDatas.forEach(acft => {
+            acftDataMap[acft.callsign] = acft;
+        });
+        updateAircraftData(acftDataMap);
 
         // Iterate through the existing track
         acftTracks.forEach(track => {

@@ -1,8 +1,12 @@
 {
-  "name": "24rc",
-  "version": "0.1.2",
+  "name": "24rcplus",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whoisjonah/24rcplus.git"
+  },
   "scripts": {
     "start": "npm run dev",
     "build": "tsc && vite build",

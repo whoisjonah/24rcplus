@@ -165,3 +165,326 @@ body {
 .toast.info {
     background: linear-gradient(90deg,#0b3a66,#0d6efd);
 }
+
+/* Flight Plan Viewer */
+.flight-plan-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(3px);
+}
+
+.flight-plan-panel {
+    background: #001a00;
+    border: 2px solid #00ff00;
+    border-radius: 4px;
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.flight-plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #00ff00;
+    background: rgba(0, 255, 0, 0.05);
+}
+
+.flight-plan-header h2 {
+    margin: 0;
+    color: #00ff00;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #00ff00;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    color: #ffff00;
+    transform: scale(1.1);
+}
+
+.flight-plan-content {
+    padding: 20px;
+}
+
+.fp-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0, 255, 0, 0.03);
+    border-left: 3px solid #00ff00;
+}
+
+.fp-section h3 {
+    margin: 0 0 12px 0;
+    color: #00ff00;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.fp-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+}
+
+.fp-row:last-child {
+    border-bottom: none;
+}
+
+.fp-label {
+    color: #8f8f8f;
+    font-size: 12px;
+}
+
+.fp-value {
+    color: #fff;
+    font-weight: bold;
+    text-align: right;
+}
+
+.fp-value.squawk {
+    color: #ffff00;
+    font-size: 16px;
+    letter-spacing: 2px;
+}
+
+/* Assignment Panel */
+.assignment-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(3px);
+}
+
+.assignment-panel {
+    background: #001a00;
+    border: 2px solid #ffaa00;
+    border-radius: 4px;
+    box-shadow: 0 0 30px rgba(255, 170, 0, 0.3);
+    width: 90%;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease-out;
+}
+
+.assignment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #ffaa00;
+    background: rgba(255, 170, 0, 0.05);
+}
+
+.assignment-header h2 {
+    margin: 0;
+    color: #ffaa00;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.assignment-header .close-btn {
+    color: #ffaa00;
+}
+
+.assignment-header .close-btn:hover {
+    color: #ffff00;
+}
+
+.assignment-content {
+    padding: 20px;
+}
+
+.current-status {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0, 255, 0, 0.05);
+    border: 1px solid #00ff00;
+    border-radius: 4px;
+}
+
+.current-status h3 {
+    margin: 0 0 12px 0;
+    color: #00ff00;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.status-item {
+    text-align: center;
+}
+
+.status-label {
+    display: block;
+    color: #8f8f8f;
+    font-size: 10px;
+    margin-bottom: 4px;
+}
+
+.status-value {
+    display: block;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.assignment-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 170, 0, 0.03);
+    border-left: 3px solid #ffaa00;
+}
+
+.assignment-section h3 {
+    margin: 0 0 12px 0;
+    color: #ffaa00;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.input-group .prefix,
+.input-group .unit {
+    color: #8f8f8f;
+    font-weight: bold;
+}
+
+.input-group input {
+    flex: 1;
+    padding: 8px 12px;
+    background: #000;
+    border: 1px solid #ffaa00;
+    color: #fff;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.input-group input:focus {
+    outline: none;
+    box-shadow: 0 0 8px rgba(255, 170, 0, 0.5);
+    border-color: #ffff00;
+}
+
+.input-group button {
+    padding: 8px 16px;
+    background: #ffaa00;
+    color: #000;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.input-group button:hover {
+    background: #ffbb22;
+    box-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+}
+
+.input-group button:active {
+    transform: scale(0.95);
+}
+
+.quick-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.quick-buttons button {
+    padding: 6px;
+    background: #003300;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    transition: all 0.2s;
+}
+
+.quick-buttons button:hover {
+    background: #00ff00;
+    color: #000;
+}
+
+.quick-buttons button:active {
+    transform: scale(0.95);
+}
+
+.assignment-info {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.assignment-info p {
+    margin: 0;
+    color: #00ffff;
+    font-size: 11px;
+}

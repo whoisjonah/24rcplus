@@ -55,6 +55,8 @@ export default class AircraftLabel {
     isFlipped: boolean;
     isAssumed: boolean;
     dragOffset: ScreenPosition;
+    
+    lastClickTime: number;
 
     line: Graphics;
     hoverBackground: Graphics;
@@ -81,6 +83,7 @@ export default class AircraftLabel {
         this.isDragged = false;
         this.isFlipped = false;
         this.isAssumed = false;
+        this.lastClickTime = 0;
 
         this.dragOffset = {
             x: 0,
@@ -208,6 +211,19 @@ export default class AircraftLabel {
     }
 
     handlePointerUp() {
+        if (!this.isDragged) {
+            // Check for double-click
+            const now = Date.now();
+            if (now - this.lastClickTime < 300) {
+                // Double-click detected - show flight plan
+                if ((window as any).showFlightPlanModal) {
+                    (window as any).showFlightPlanModal(this.acftData);
+                }
+                this.lastClickTime = 0; // Reset to prevent triple-click
+            } else {
+                this.lastClickTime = now;
+            }
+        }
         this.isDragged = false;
     }
 
