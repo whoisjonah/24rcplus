@@ -497,28 +497,18 @@ body {
 }
 
 .assume-btn {
-    background: transparent;
+    background: #000000;
     border: 1px solid #00aa00;
     color: #00aa00;
-    padding: 3px 8px;
-    font-size: 10px;
+    padding: 2px 6px;
+    font-size: 9px;
     font-weight: 500;
-    border-radius: 1px;
+    border-radius: 0;
     cursor: pointer;
     transition: all 0.1s;
     font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.assume-btn:hover {
-    background: rgba(0, 170, 0, 0.1);
-    border-color: #00ff00;
-    color: #00ff00;
-}
-
-.assume-btn:active {
-    background: rgba(0, 170, 0, 0.2);
+    letter-spacing: 0.3px;
 }
 
 /* Context Menu */
