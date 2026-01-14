@@ -473,6 +473,12 @@ function checkAuthentication(callback: () => void) {
 
     // Scroll wheel
     app.stage.on('wheel', e => {
+        // Prevent the browser from scrolling the page when using the wheel over the canvas.
+        try {
+            // Pixi's federated event may expose the original DOM event
+            const orig = (e as any).originalEvent || e;
+            if (orig && typeof orig.preventDefault === 'function') orig.preventDefault();
+        } catch (err) { }
         // down scroll, zoom out
         if (e.deltaY > 0)
             basemap.scale.set(basemap.scale.x * 1 / 1.1);
@@ -483,6 +489,15 @@ function checkAuthentication(callback: () => void) {
         positionGraphics();
         updateGroundVisibilityBasedOnZoom();
     })
+
+    // Add a non-passive wheel listener on the canvas to block default scrolling behavior
+    // when the mouse is over the map canvas.
+    try {
+        app.view.addEventListener('wheel', (ev: WheelEvent) => ev.preventDefault(), { passive: false });
+    } catch (err) {
+        // ignore if the browser doesn't support options
+        app.view.addEventListener('wheel', (ev: WheelEvent) => ev.preventDefault());
+    }
 
     // Update aircraft tracks
     ///////////////////////////
