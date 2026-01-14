@@ -55,10 +55,11 @@ body {
     align-items: center;
 }
 
+/* Toolbar: smaller height */
 #dcb {
     display: flex;
     flex-direction: row;
-    height: 80px;
+    height: 56px;
     transition: opacity 0.3s ease;
 }
 
@@ -96,29 +97,29 @@ body {
 
 /* full height buttons */
 #dcb > div {
-    height: 76px;
+    height: 52px;
 }
 
 /* half height buttons */
 #dcb > div > div {
-    height: 36px;
+    height: 24px;
 }
 
 .dcb-button {
-    width: 62px;
+    width: 46px;
 
     border: #555555;
     border-style: outset;
     border-width: 2px;
     background-color: #002C00;
 
-    padding: 0 5px 0 5px;
+    padding: 0 4px 0 4px;
     
     display: flex;
     flex-direction: column;
     justify-content: space-around;
     
-    font-size: 10pt;
+    font-size: 9pt;
     color: #eee;
     text-align: center;
 
@@ -141,7 +142,7 @@ body {
 }
 
 .dcb-narrow {
-    width: 35px;
+    width: 28px;
 }
 
 .dcb-pressed {
@@ -151,6 +152,9 @@ body {
 
 .dcb-disabled {
     color: #5A5A5A;
+    font-size: 8.5pt;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
 
 .dcb-disabled:hover {

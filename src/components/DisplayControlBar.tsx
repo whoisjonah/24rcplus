@@ -143,7 +143,6 @@ function MainMenu() {
     
     return (<>
         <Button onClick={() => setMenuId(Menus.AptSelectMenu)}>APT SELECT</Button>
-        <Button disabled>RANGE<br />50</Button>
         <Button
             pressed={(window as any).isEventMode?.()}
             onClick={() => {
@@ -153,29 +152,12 @@ function MainMenu() {
         >EVENT MODE</Button>
         <div>
             <Button onClick={() => adjustLabelScale(-0.1)}>-LBL</Button>
-            <Button disabled>{Math.round((config.labelScale || 1) * 100)}%</Button>
+            <div className="dcb-button dcb-disabled">{Math.round((config.labelScale || 1) * 100)}%</div>
             <Button onClick={() => adjustLabelScale(0.1)}>+LBL</Button>
         </div>
-        <div>
-            <Button disabled>PLACE CNTR</Button>
-            <Button disabled>OFF CNTR</Button>
-        </div>
-        <Button disabled>RR<br />5</Button>
-        <div>
-            <Button disabled>PLACE RR</Button>
-            <Button disabled>RR CNTR</Button>
-        </div>
+
         <MapsSection />
-        <Button disabled>BRITE</Button>
-        <div>
-            <Button disabled>LDR DIR<br />N</Button>
-            <Button disabled>LDR<br />2</Button>
-        </div>
-        <Button disabled>PREF</Button>
-        <div>
-            <Button disabled>SSA FILTER</Button>
-            <Button disabled>GI TEXT FILTER</Button>
-        </div>
+
         <Button 
             pressed={config.hideGroundTraffic} 
             onClick={() => {
@@ -216,7 +198,6 @@ function MainMenu() {
                 }}
             >STARs</Button>
         </div>
-        <Button disabled>SHIFT</Button>
     </>)
 }
 
