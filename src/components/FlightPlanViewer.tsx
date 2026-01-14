@@ -189,6 +189,10 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
                         <input className="fp-value fp-input" type="text" value={destination} onChange={(e) => setDestination(e.target.value)} />
                     </div>
                     <div className="fp-field">
+                        <span className="fp-label">Squawk</span>
+                        <input className="fp-value fp-input" type="text" value={squawk} onChange={(e) => setSquawk(e.target.value)} />
+                    </div>
+                    <div className="fp-field">
                         <span className="fp-label">Altitude</span>
                         <div style={{ position: 'relative', display: 'inline-block' }}>
                             <input className="fp-value fp-input" type="text" value={altitude} onChange={(e) => setAltitude(e.target.value)} style={{ paddingRight: 28 }} />
@@ -211,10 +215,6 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
                                 />
                             )}
                         </div>
-                    </div>
-                    <div className="fp-field">
-                        <span className="fp-label">Squawk</span>
-                        <input className="fp-value fp-input" type="text" value={squawk} onChange={(e) => setSquawk(e.target.value)} />
                     </div>
                 </div>
 
