@@ -338,6 +338,15 @@ const antialias = false;
         }
     };
 
+    // Refresh all aircraft labels (used when callsign is changed in flight plan panel)
+    (window as any).refreshAircraftLabels = () => {
+        acftLabels.forEach(label => {
+            label.formatText();
+            label.updateGraphics();
+            label.scratchPad.updateText();
+        });
+    };
+
     // Resizing and moving
     ////////////////////////
     function positionGraphics() {

@@ -49,6 +49,18 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
         setAltitude(flightLevel);
     }, [aircraft.callsign]); // Reset when aircraft callsign changes (indicates new spawn)
 
+    // Sync callsign changes to scope
+    useEffect(() => {
+        const currentCallsign = deriveCallsign();
+        if (callsign !== currentCallsign) {
+            (window as any).setFlightPlanCallsign?.(aircraft.playerName, callsign);
+            // Trigger aircraft label refresh
+            if ((window as any).refreshAircraftLabels) {
+                (window as any).refreshAircraftLabels();
+            }
+        }
+    }, [callsign]);
+
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (dragging) {
