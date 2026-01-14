@@ -1,10 +1,10 @@
 import { Container, Graphics, Text, TextStyle, Rectangle } from "pixi.js";
 import { AircraftData } from "../types";
 import config from "../config";
+import airlineMap from "../data/AirlineMap.json";
 
 import { acftToScreenPos, ScreenPosition } from "../helpers/coordConversions";
 import LabelScratchPad from "./LabelScratchPad";
-// Removed ICAO conversion: show callsign as filed/in-game directly
 
 export const unassumedTextStyle: Partial<TextStyle> = {
     fontFamily:
@@ -183,8 +183,8 @@ export default class AircraftLabel {
     formatText() {
         if (this.isDestroyed) return;
         
-        // Show the flight plan callsign exactly as filed if present; otherwise show in-game callsign
-        const callsign = this.acftData.flightPlanCallsign || this.acftData.callsign;
+        // Show the flight plan callsign if present, otherwise convert in-game callsign to ICAO
+        let callsign = this.acftData.flightPlanCallsign || this.convertToICAO(this.acftData.callsign);
         
         if (this.isAssumed) {
             // Show full data block for assumed aircraft
@@ -519,6 +519,21 @@ export default class AircraftLabel {
         const width = temp.width;
         temp.destroy();
         return width;
+    }
+
+    private convertToICAO(callsign: string): string {
+        // Extract airline name from callsign (e.g., "Tedex-4579" → "Tedex")
+        const parts = callsign.split('-');
+        const airlineName = parts[0];
+        
+        // Look up in AirlineMap
+        const icao = (airlineMap as any)[airlineName];
+        
+        // Return ICAO code + flight number, or original if not found
+        if (icao && parts[1]) {
+            return icao + parts[1];
+        }
+        return callsign; // Fallback to original if no match
     }
 
     destroy() {
