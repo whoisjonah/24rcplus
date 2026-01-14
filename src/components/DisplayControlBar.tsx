@@ -154,7 +154,6 @@ function AssetButton({ assetString, pressed = false }: { assetString: string, pr
 function MapsSection() {
     const airport = getSelectedAirport();
     const maps: Array<JSX.Element> = [];
-    const [, setTick] = useState({});
 
     maps.push(<AssetButton pressed assetString='global/coast' />)
     maps.push(<AssetButton pressed assetString='global/boundaries' />)
