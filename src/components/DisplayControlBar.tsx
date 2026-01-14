@@ -187,7 +187,6 @@ function MapsSection() {
 
 function MainMenu() {
     const [, forceUpdate] = useState({});
-    const [showGndToolbar, setShowGndToolbar] = useState(false);
 
     const adjustLabelScale = (delta: number) => {
         const next = Math.round(((config.labelScale || 1) + delta) * 100) / 100;
@@ -219,34 +218,18 @@ function MainMenu() {
         </div>
 
         <div>
-            <Button onClick={() => setShowGndToolbar(s => !s)} pressed={config.autoToggleGroundByZoom}>GND AUTO</Button>
+            <Button
+                pressed={config.autoToggleGroundByZoom}
+                onClick={() => {
+                    config.autoToggleGroundByZoom = !config.autoToggleGroundByZoom;
+                    forceUpdate({});
+                }}
+            >GND AUTO</Button>
         </div>
 
         <MapsSection />
 
-        {showGndToolbar && <div style={{padding:8, background:'#001a00', border:'1px solid #004400', marginLeft:6}}>
-            <div style={{fontSize:10, color:'#ccc', marginBottom:6}}>Ground auto-toggle threshold</div>
-            <div style={{display:'flex', gap:8, alignItems:'center'}}>
-                <input
-                    type="range"
-                    min={0.8}
-                    max={2}
-                    step={0.01}
-                    value={config.groundTrafficRevealZoom}
-                    onChange={e => {
-                        const v = Number(e.target.value);
-                        config.groundTrafficRevealZoom = v;
-                        (window as any).setGroundTrafficRevealZoom?.(v);
-                        (window as any).updateGroundVisibilityBasedOnZoom?.();
-                        forceUpdate({});
-                    }}
-                />
-                <div className="dcb-button dcb-disabled">{config.groundTrafficRevealZoom.toFixed(2)}</div>
-                <Button pressed={config.autoToggleGroundByZoom} onClick={() => { config.autoToggleGroundByZoom = !config.autoToggleGroundByZoom; forceUpdate({}); }}>
-                    AUTO
-                </Button>
-            </div>
-        </div>}
+        
 
         <Button 
             pressed={config.hideGroundTraffic} 
