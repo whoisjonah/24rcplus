@@ -362,9 +362,31 @@ function checkAuthentication(callback: () => void) {
         const shouldHide = !zoomShowsGround && !config.forceShowGroundTraffic;
         if (config.hideGroundTraffic !== shouldHide) {
             config.hideGroundTraffic = shouldHide;
-            showToast(`HIDE GND ${config.hideGroundTraffic ? 'ON' : 'OFF'} (zoom)`,'info',900);
+            // flash the small blue dot instead of toast
+            (window as any).flashGndDot?.();
         }
     }
+
+    function flashGndDot() {
+        try {
+            const id = 'gnd-dot';
+            let el = document.getElementById(id) as HTMLElement | null;
+            if (!el) {
+                el = document.createElement('div');
+                el.id = id;
+                el.className = 'gnd-dot';
+                document.body.appendChild(el);
+            }
+            el.classList.remove('flash');
+            // trigger reflow
+            void el.offsetWidth;
+            el.classList.add('flash');
+            setTimeout(() => el && el.classList.remove('flash'), 900);
+        } catch (e) { }
+    }
+
+    (window as any).updateGroundVisibilityBasedOnZoom = updateGroundVisibilityBasedOnZoom;
+    (window as any).flashGndDot = flashGndDot;
     // Debug helpers: inspect and control basemap scale and hideGroundTraffic
     (window as any).getBasemapScale = () => basemap.scale.x;
     (window as any).setBasemapScale = (v: number) => {
