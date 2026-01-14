@@ -251,16 +251,41 @@ const antialias = false;
     }
 
     // Manual overrides for flight plan callsign
+    const CALLSIGN_OVERRIDES_KEY = "24rc_callsign_overrides";
     const flightPlanCallsigns: { [playerName: string]: string } = {};
+
+    // Load manual callsign overrides from localStorage
+    function loadCallsignOverrides() {
+        try {
+            const cached = localStorage.getItem(CALLSIGN_OVERRIDES_KEY);
+            if (!cached) return;
+            const stored = JSON.parse(cached);
+            Object.assign(flightPlanCallsigns, stored);
+        } catch (e) {
+            console.error("Failed to load callsign overrides:", e);
+        }
+    }
+
+    // Save manual callsign overrides to localStorage
+    function saveCallsignOverrides() {
+        try {
+            localStorage.setItem(CALLSIGN_OVERRIDES_KEY, JSON.stringify(flightPlanCallsigns));
+        } catch (e) {
+            console.error("Failed to save callsign overrides:", e);
+        }
+    }
+
+    loadCallsignOverrides();
 
     // Expose flight plan callsign management globally
     (window as any).setFlightPlanCallsign = (playerName: string, callsign: string) => {
         const trimmed = (callsign || "").trim();
         if (!trimmed) {
             delete flightPlanCallsigns[playerName];
-            return;
+        } else {
+            flightPlanCallsigns[playerName] = trimmed;
         }
-        flightPlanCallsigns[playerName] = trimmed;
+        saveCallsignOverrides();
     };
 
     (window as any).getFlightPlanCallsign = (playerName: string): string | undefined => {

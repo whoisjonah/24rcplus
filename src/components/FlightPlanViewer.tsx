@@ -18,16 +18,11 @@ function generateSquawk(): string {
 export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewerProps) {
     const [squawk] = useState(generateSquawk());
     const deriveCallsign = () => aircraft.flightPlanCallsign || (window as any).getFlightPlanCallsign?.(aircraft.playerName) || '';
-    const [flightPlanCallsign, setFlightPlanCallsign] = useState(deriveCallsign);
+    const [flightPlanCallsign] = useState(deriveCallsign);
     const panelRef = useRef<HTMLDivElement>(null);
     const [position, setPosition] = useState({ x: window.innerWidth / 2 - 200, y: 100 });
     const [dragging, setDragging] = useState(false);
     const dragStart = useRef({ x: 0, y: 0 });
-
-    // Keep local callsign in sync when aircraft prop updates with fresh flight plan data
-    useEffect(() => {
-        setFlightPlanCallsign(deriveCallsign());
-    }, [aircraft]);
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
@@ -67,15 +62,6 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
     const flightLevel = flDisplayBase < 100 
         ? flDisplayBase.toString().padStart(2, '0')
         : flDisplayBase.toString().padStart(3, '0');
-
-    const handleSaveCallsign = () => {
-        if ((window as any).setFlightPlanCallsign) {
-            (window as any).setFlightPlanCallsign(aircraft.playerName, flightPlanCallsign);
-            if ((window as any).showToast) {
-                (window as any).showToast('Flight plan callsign updated', 'success');
-            }
-        }
-    };
 
     return (
         <div 
