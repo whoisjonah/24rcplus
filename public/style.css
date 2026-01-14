@@ -497,33 +497,28 @@ body {
 }
 
 .assume-btn {
-    background: linear-gradient(135deg, #004d00 0%, #003300 100%);
+    background: transparent;
     border: 1px solid #00aa00;
-    border-right: 1px solid #001a00;
-    border-bottom: 1px solid #001a00;
-    color: #00ff00;
-    padding: 4px 10px;
+    color: #00aa00;
+    padding: 3px 8px;
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 500;
     border-radius: 1px;
     cursor: pointer;
     transition: all 0.1s;
     font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    box-shadow: inset 1px 1px 0 rgba(0, 255, 0, 0.2), inset -1px -1px 0 rgba(0, 0, 0, 0.5);
-    outline: none;
 }
 
 .assume-btn:hover {
-    background: linear-gradient(135deg, #006600 0%, #004d00 100%);
+    background: rgba(0, 170, 0, 0.1);
+    border-color: #00ff00;
     color: #00ff00;
-    box-shadow: inset 1px 1px 0 rgba(0, 255, 0, 0.3), inset -1px -1px 0 rgba(0, 0, 0, 0.5);
 }
 
 .assume-btn:active {
-    background: linear-gradient(135deg, #003300 0%, #001a00 100%);
-    box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.5), inset -1px -1px 0 rgba(0, 255, 0, 0.1);
+    background: rgba(0, 170, 0, 0.2);
 }
 
 /* Context Menu */
