@@ -76,7 +76,8 @@ export default function createWebSocketManager(url: string, handlers: Handlers, 
             if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
         };
 
-        ws.onclose = () => {
+        ws.onclose = (ev) => {
+            console.log(`[WS] Close code: ${ev.code}, reason: "${ev.reason}"`);
             handlers.onClose && handlers.onClose();
             scheduleReconnect();
         };
