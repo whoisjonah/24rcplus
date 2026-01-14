@@ -198,29 +198,38 @@ const antialias = false;
     const flightPlansByPlayer: { [normPlayer: string]: FlightPlanData } = {};
 
     const FLIGHT_PLAN_CACHE_KEY = "24rc_flight_plans";
-    const FLIGHT_PLAN_TTL_MS = 45 * 60 * 1000; // 45 minutes
+    const FLIGHT_PLAN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
     function loadCachedFlightPlans() {
         try {
             const cached = localStorage.getItem(FLIGHT_PLAN_CACHE_KEY);
-            if (!cached) return;
+            if (!cached) {
+                console.log('📦 No cached flight plans found');
+                return;
+            }
             const stored = JSON.parse(cached) as { [key: string]: { fp: FlightPlanData; ts: number } };
             const now = Date.now();
+            let loadedCount = 0;
             
             Object.entries(stored).forEach(([, { fp, ts }]) => {
-                if (now - ts < FLIGHT_PLAN_TTL_MS) {
+                const age = now - ts;
+                if (age < FLIGHT_PLAN_TTL_MS) {
                     // Plan is still valid
                     flightPlans[fp.robloxName] = fp;
                     const pnNorm = normalizePlayer(fp.robloxName);
                     if (pnNorm) flightPlansByPlayer[pnNorm] = fp;
                     const rcNorm = normalizeCallsign(fp.realcallsign);
                     if (rcNorm) flightPlansByRealCallsign[rcNorm] = fp;
-                    if (fp.callsign && !flightPlanCallsigns[fp.robloxName]) {
+                    if (fp.callsign) {
                         flightPlanCallsigns[fp.robloxName] = fp.callsign;
                     }
-                    console.log(`📦 Loaded cached FP for ${fp.robloxName}: ${fp.callsign}`);
+                    loadedCount++;
+                    console.log(`📦 Loaded cached FP for ${fp.robloxName}: ${fp.callsign} (age: ${Math.round(age / 1000)}s)`);
+                } else {
+                    console.log(`⏰ Expired FP for ${fp.robloxName} (age: ${Math.round(age / 60000)}min)`);
                 }
             });
+            console.log(`📦 Total flight plans loaded: ${loadedCount}`);
         } catch (e) {
             console.error("Failed to load cached flight plans:", e);
         }
@@ -232,6 +241,7 @@ const antialias = false;
             const stored = cached ? JSON.parse(cached) : {};
             stored[fp.robloxName] = { fp, ts: Date.now() };
             localStorage.setItem(FLIGHT_PLAN_CACHE_KEY, JSON.stringify(stored));
+            console.log(`💾 Saved FP to cache for ${fp.robloxName}`);
         } catch (e) {
             console.error("Failed to save flight plan to cache:", e);
         }
@@ -511,10 +521,11 @@ const antialias = false;
                 if (pnNorm) flightPlansByPlayer[pnNorm] = fp;
                 const rcNorm = normalizeCallsign(fp.realcallsign);
                 if (rcNorm) flightPlansByRealCallsign[rcNorm] = fp;
-                if (fp.callsign && !flightPlanCallsigns[fp.robloxName]) {
+                if (fp.callsign) {
                     flightPlanCallsigns[fp.robloxName] = fp.callsign;
                 }
-                // Save to localStorage so it persists for 45 minutes even if bot restarts
+                saveCallsignOverrides();
+                // Save to localStorage so it persists across reloads
                 saveFlightPlanToCache(fp);
                 console.log(`   ✅ Stored FP for ${fp.robloxName}`);
             }
