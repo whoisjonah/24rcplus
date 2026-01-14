@@ -356,6 +356,15 @@ function checkAuthentication(callback: () => void) {
         showToast(`groundTrafficRevealZoom = ${next}`, 'info', 1500);
     };
     (window as any).getGroundTrafficRevealZoom = () => config.groundTrafficRevealZoom;
+    // Debug helpers: inspect and control basemap scale and hideGroundTraffic
+    (window as any).getBasemapScale = () => basemap.scale.x;
+    (window as any).setBasemapScale = (v: number) => {
+        const s = Number(v) || basemap.scale.x;
+        basemap.scale.set(s);
+        positionGraphics();
+        showToast(`basemap.scale = ${s}`, 'info', 1200);
+    };
+    (window as any).getHideGroundTraffic = () => config.hideGroundTraffic;
 
     // Expose toggleAssumedAircraft globally
     (window as any).toggleAssumedAircraft = (callsign: string) => {
