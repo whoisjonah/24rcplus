@@ -7,10 +7,11 @@ interface PasswordScreenProps {
 export default function PasswordScreen({ onAuthenticated }: PasswordScreenProps) {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const ADMIN_PASSWORD = (import.meta.env.VITE_ADMIN_PASSWORD as string) || "";
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (password === "[REDACTED_PASSWORD]") {
+        if (password === ADMIN_PASSWORD) {
             localStorage.setItem("24rc_authenticated", "true");
             onAuthenticated();
         } else {
