@@ -209,9 +209,11 @@ export default class AircraftLabel {
             const hasFlightPlan = this.acftData.flightPlanCallsign || this.acftData.flightPlanOrigin;
             this.fpButton.style.fill = hasFlightPlan ? 0x00ff00 : 0xff0000;
         } else {
-            // Show only callsign for unassumed aircraft
+            // Show callsign and current altitude (FL) for unassumed aircraft
             this.dataBlock.style = unassumedTextStyle;
-            this.dataBlock.text = callsign;
+            const fl = Math.floor(this.acftData.altitude / 100);
+            const altFormatted = fl < 100 ? fl.toString().padStart(2, '0') : fl.toString();
+            this.dataBlock.text = `${callsign}\nFL${altFormatted}`;
             this.fpButton.visible = false;
             this.assignedFL = null;
             this.assignedSpeed = null;
