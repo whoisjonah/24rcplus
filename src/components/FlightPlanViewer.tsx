@@ -42,6 +42,7 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
     const [position, setPosition] = useState({ x: window.innerWidth / 2 - 200, y: 100 });
     const [dragging, setDragging] = useState(false);
     const dragStart = useRef({ x: 0, y: 0 });
+    const routeRef = useRef<HTMLTextAreaElement | null>(null);
 
     // Altitude should never fall back to current altitude; use filed FL or N/A
     const [altitude, setAltitude] = useState(initialAltitude);
@@ -100,6 +101,16 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
         setSquawk(latestManual?.squawk || generateSquawk());
         setAltitude(latestManual?.altitude || formatFlightLevel(aircraft.flightPlanLevel) || "N/A");
     }, [aircraft.callsign]); // Reset when aircraft callsign changes (indicates new spawn)
+
+    // Autosize the route textarea when its value changes
+    useEffect(() => {
+        const el = routeRef.current;
+        if (!el) return;
+        // reset height to allow shrink
+        el.style.height = 'auto';
+        // then set to scrollHeight to fit content
+        el.style.height = `${el.scrollHeight}px`;
+    }, [route]);
 
     // Sync callsign changes to scope
     useEffect(() => {
@@ -221,7 +232,14 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
                 <div className="fp-row fp-route">
                     <div className="fp-field" style={{ flex: 1 }}>
                         <span className="fp-label">Route</span>
-                        <input className="fp-value fp-input" type="text" value={route} onChange={(e) => setRoute(e.target.value)} style={{ width: '100%' }} />
+                        <textarea
+                            ref={routeRef}
+                            className="fp-value fp-input"
+                            value={route}
+                            onChange={(e) => setRoute(e.target.value)}
+                            rows={1}
+                            style={{ width: '100%', resize: 'none', overflow: 'hidden', lineHeight: '18px' }}
+                        />
                     </div>
                 </div>
             </div>
