@@ -1,6 +1,8 @@
 import { Application, Container, FederatedPointerEvent, Point } from "pixi.js";
 // import { Button } from '@pixi/ui';
 import 'pixi.js/math-extras';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
 import { acftCollectionToAcftArray, pointsToDistance } from "./util";
 import { AircraftCollection, FlightPlanData } from "./types";
 import config from "./config";
@@ -12,6 +14,7 @@ import AircraftLabel from "./components/AircraftLabel";
 import FixesLayer from "./components/FixesLayer";
 import createWebSocketManager from "./ws/Connector";
 import { initializeModalManager, showFlightPlanModal, showContextMenu, hideContextMenu, updateAircraftData } from "./components/ModalManager";
+import PasswordScreen from "./components/PasswordScreen";
 
 // Toolbar toggle functionality
 let toolbarVisible = true;
@@ -49,7 +52,37 @@ const DOUBLE_CLICK_DISTANCE = 200;
 // const gameSize = {x: 96355, y: 92030};
 const antialias = false;
 
+// Check authentication before initializing app
+function checkAuthentication(callback: () => void) {
+    const authRoot = document.getElementById('auth-root');
+    if (!authRoot) {
+        callback();
+        return;
+    }
+
+    const isAuthenticated = localStorage.getItem('24rc_authenticated') === 'true';
+    if (isAuthenticated) {
+        callback();
+    } else {
+        const root = createRoot(authRoot);
+        root.render(
+            React.createElement(PasswordScreen, {
+                onAuthenticated: () => {
+                    root.unmount();
+                    authRoot.remove();
+                    callback();
+                }
+            })
+        );
+    }
+}
+
 (async () => {
+    // Check password first
+    await new Promise<void>(resolve => {
+        checkAuthentication(resolve);
+    });
+
     // Initialisation
     ///////////////////
     const container = document.getElementById("pixi-container");
