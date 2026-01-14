@@ -210,7 +210,8 @@ body {
     border: 1px solid #333;
     border-radius: 2px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
-    width: 400px;
+    width: 520px;
+    box-sizing: border-box;
     z-index: 10000;
     font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace;
 }
@@ -258,8 +259,8 @@ body {
 
 .fp-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 12px;
     margin-bottom: 8px;
 }
 
@@ -292,6 +293,7 @@ body {
     min-height: 22px;
     display: flex;
     align-items: center;
+    box-sizing: border-box;
 }
 
 .fp-input {
@@ -304,6 +306,7 @@ body {
     border-radius: 2px !important;
     font-family: inherit !important;
     outline: none;
+    box-sizing: border-box !important;
 }
 
 .fp-input:focus {
