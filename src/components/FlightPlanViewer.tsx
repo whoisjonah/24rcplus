@@ -190,12 +190,12 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
                     </div>
                     <div className="fp-field">
                         <span className="fp-label">Squawk</span>
-                        <input className="fp-value fp-input" type="text" value={squawk} onChange={(e) => setSquawk(e.target.value)} />
+                        <input className="fp-value fp-input" type="text" value={squawk} onChange={(e) => setSquawk(e.target.value)} style={{ width: '100%' }} />
                     </div>
                     <div className="fp-field">
                         <span className="fp-label">Altitude</span>
-                        <div style={{ position: 'relative', display: 'inline-block' }}>
-                            <input className="fp-value fp-input" type="text" value={altitude} onChange={(e) => setAltitude(e.target.value)} style={{ paddingRight: 28 }} />
+                        <div style={{ position: 'relative', width: '100%' }}>
+                            <input className="fp-value fp-input" type="text" value={altitude} onChange={(e) => setAltitude(e.target.value)} style={{ paddingRight: 28, width: '100%' }} />
                             {altitudeValidity.valid !== undefined && (
                                 <div
                                     title={altitudeValidity.valid ? 'Flight level parity OK' : `Expected ${altitudeValidity.expected} FLs for ${flightDirection.direction || 'unknown'}`}
