@@ -492,7 +492,9 @@ function checkAuthentication(callback: () => void) {
         });
         
         // Filter based on config settings; assumed aircraft always shown
-        if (config.hideGroundTraffic) {
+        // If zoomed in past `config.groundTrafficRevealZoom`, show ground traffic regardless of hide flag
+        const zoomShowsGround = basemap.scale.x >= (config.groundTrafficRevealZoom || 1.5);
+        if (config.hideGroundTraffic && !zoomShowsGround) {
             acftDatas = acftDatas.filter(acft => !acft.isOnGround || assumedPlayers.has(acft.playerName));
         }
         
