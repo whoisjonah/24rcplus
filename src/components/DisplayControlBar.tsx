@@ -26,6 +26,7 @@ function Button({ disabled=false, pressed=false, onClick, onContextMenu, childre
 enum Menus {
     MainMenu,
     AptSelectMenu,
+    LayersMenu,
 }
 
 // cursed
@@ -81,6 +82,49 @@ function AptSelectMenu() {
                 >{apt}</Button>
             )}
         </>;
+}
+
+function LayersMenu() {
+    const [, forceUpdate] = useState({});
+    const islandToAirportMap = new Map(Object.entries(IslandToAirportMap));
+    const groupAirports = islandToAirportMap.get("RKFRD") || ["IRFD", "IMLR", "IGAR", "IBLT", "ITRC"];
+
+    async function toggleAsset(airport: string, assetId: string) {
+        const key = `${airport}/${assetId}`;
+        if (assetManager.isAssetLoaded(key)) {
+            assetManager.unloadAsset(key);
+        } else {
+            await assetManager.loadAsset(key);
+        }
+        forceUpdate({});
+    }
+
+    return <>
+        <Button onClick={() => setMenuId(Menus.MainMenu)}>BACK</Button>
+        {groupAirports.map(apt => {
+            const cat = assetManager.getCategory(apt);
+            const runwayAssets = cat ? cat.assets.filter(a => a.id.startsWith("RWY")) : [];
+            const groundAsset = cat ? cat.assets.find(a => a.id === "GROUND") : undefined;
+            return <div key={apt} style={{marginTop:8}}>
+                <div style={{fontSize:12, color:'#ccc', padding:'4px 6px'}}>{apt}</div>
+                <div style={{display:'flex', gap:6, flexWrap:'wrap'}}>
+                    {runwayAssets.map(a => (
+                        <Button
+                            key={a.id}
+                            pressed={assetManager.isAssetLoaded(`${apt}/${a.id}`)}
+                            onClick={() => toggleAsset(apt, a.id)}
+                        >{a.id}</Button>
+                    ))}
+                    {groundAsset && (
+                        <Button
+                            pressed={assetManager.isAssetLoaded(`${apt}/GROUND`)}
+                            onClick={() => toggleAsset(apt, 'GROUND')}
+                        >GND</Button>
+                    )}
+                </div>
+            </div>
+        })}
+    </>;
 }
 
 function AssetButton({ assetString, pressed = false }: { assetString: string, pressed?: boolean } ) {
@@ -193,6 +237,7 @@ function MainMenu() {
     
     return (<>
         <Button onClick={() => setMenuId(Menus.AptSelectMenu)}>APT SELECT</Button>
+        <Button onClick={() => setMenuId(Menus.LayersMenu)}>LAYERS</Button>
         <Button
             pressed={(window as any).isEventMode?.()}
             onClick={() => {
@@ -269,6 +314,8 @@ function ActiveMenu() {
         return <MainMenu />
     if (menuId === Menus.AptSelectMenu)
         return <AptSelectMenu />
+    if (menuId === Menus.LayersMenu)
+        return <LayersMenu />
 }
 
 export default class DisplayControlBar {
