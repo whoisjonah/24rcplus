@@ -19,10 +19,12 @@ let currentAircraftData: { [key: string]: AircraftData } = {};
 let dataVersion = 0;
 
 export function showFlightPlanModal(aircraft: AircraftData) {
+    // Refresh aircraft data to get latest flight plan fields
+    const updated = currentAircraftData[aircraft.callsign] || currentAircraftData[`player:${aircraft.playerName}`] || aircraft;
     setModalState(prev => ({
         ...prev,
         showFlightPlan: true,
-        selectedAircraft: aircraft,
+        selectedAircraft: updated,
         contextMenuAircraft: null
     }));
 }

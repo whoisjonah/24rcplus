@@ -16,13 +16,27 @@ function generateSquawk(): string {
 }
 
 export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewerProps) {
-    const [squawk] = useState(generateSquawk());
+    const [squawk, setSquawk] = useState(generateSquawk());
     const deriveCallsign = () => aircraft.flightPlanCallsign || (window as any).getFlightPlanCallsign?.(aircraft.playerName) || '';
-    const [flightPlanCallsign] = useState(deriveCallsign);
+    const [callsign, setCallsign] = useState(deriveCallsign);
+    const [apData, setApData] = useState(aircraft.flightPlanAircraft || aircraft.aircraftType || "");
+    const [origin, setOrigin] = useState(aircraft.flightPlanOrigin || "");
+    const [destination, setDestination] = useState(aircraft.flightPlanDestination || "");
+    const [route, setRoute] = useState(aircraft.flightPlanRoute || "");
+    
     const panelRef = useRef<HTMLDivElement>(null);
     const [position, setPosition] = useState({ x: window.innerWidth / 2 - 200, y: 100 });
     const [dragging, setDragging] = useState(false);
     const dragStart = useRef({ x: 0, y: 0 });
+
+    // Derive altitude from flight plan level or current altitude
+    const flFromPlan = aircraft.flightPlanLevel ? parseInt(aircraft.flightPlanLevel, 10) : NaN;
+    const flComputed = Math.round(aircraft.altitude / 100);
+    const flDisplayBase = Number.isFinite(flFromPlan) ? flFromPlan : flComputed;
+    const flightLevel = flDisplayBase < 100 
+        ? flDisplayBase.toString().padStart(2, '0')
+        : flDisplayBase.toString().padStart(3, '0');
+    const [altitude, setAltitude] = useState(flightLevel);
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
@@ -78,37 +92,37 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
                 <div className="fp-row">
                     <div className="fp-field">
                         <span className="fp-label">Callsign</span>
-                        <div className="fp-value">{flightPlanCallsign || aircraft.callsign}</div>
+                        <input className="fp-value fp-input" type="text" value={callsign} onChange={(e) => setCallsign(e.target.value)} />
                     </div>
                     <div className="fp-field">
                         <span className="fp-label">AP Data</span>
-                        <div className="fp-value">{filedAircraft}</div>
+                        <input className="fp-value fp-input" type="text" value={apData} onChange={(e) => setApData(e.target.value)} />
                     </div>
                 </div>
 
                 <div className="fp-row">
                     <div className="fp-field">
                         <span className="fp-label">Origin</span>
-                        <div className="fp-value">{origin}</div>
+                        <input className="fp-value fp-input" type="text" value={origin} onChange={(e) => setOrigin(e.target.value)} />
                     </div>
                     <div className="fp-field">
                         <span className="fp-label">Destination</span>
-                        <div className="fp-value">{destination}</div>
+                        <input className="fp-value fp-input" type="text" value={destination} onChange={(e) => setDestination(e.target.value)} />
                     </div>
                     <div className="fp-field">
                         <span className="fp-label">Altitude</span>
-                        <div className="fp-value">{flightLevel}</div>
+                        <input className="fp-value fp-input" type="text" value={altitude} onChange={(e) => setAltitude(e.target.value)} />
                     </div>
                     <div className="fp-field">
                         <span className="fp-label">Squawk</span>
-                        <div className="fp-value">{squawk}</div>
+                        <input className="fp-value fp-input" type="text" value={squawk} onChange={(e) => setSquawk(e.target.value)} />
                     </div>
                 </div>
 
                 <div className="fp-row fp-route">
                     <div className="fp-field" style={{ flex: 1 }}>
                         <span className="fp-label">Route</span>
-                        <div className="fp-value">{route}</div>
+                        <input className="fp-value fp-input" type="text" value={route} onChange={(e) => setRoute(e.target.value)} style={{ width: '100%' }} />
                     </div>
                 </div>
             </div>
