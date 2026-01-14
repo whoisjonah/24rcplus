@@ -11,14 +11,15 @@ type ButtonProps = {
     disabled?: boolean,
     pressed?: boolean,
     onClick?: () => any,
+    onContextMenu?: (e: React.MouseEvent) => any,
     children?: ReactNode;
 };
 
-function Button({ disabled=false, pressed=false, onClick, children }: ButtonProps) {
+function Button({ disabled=false, pressed=false, onClick, onContextMenu, children }: ButtonProps) {
     let classname = "dcb-button";
     if (disabled) classname += " dcb-disabled";
     if (pressed) classname += " dcb-pressed";
-    return <div className={classname} onClick={onClick}>{children}</div>
+    return <div className={classname} onClick={onClick} onContextMenu={onContextMenu}>{children}</div>
 }
 
 
@@ -151,7 +152,13 @@ function MainMenu() {
             }}
         >EVENT MODE</Button>
         <div>
-            <Button onClick={() => adjustLabelScale(-0.1)}>-LBL</Button>
+            <Button
+                onClick={() => adjustLabelScale(-0.1)}
+                onContextMenu={(e) => {
+                    e.preventDefault();
+                    adjustLabelScale(0.1);
+                }}
+                >-LBL</Button>
             <div className="dcb-button dcb-disabled">{Math.round((config.labelScale || 1) * 100)}%</div>
             <Button onClick={() => adjustLabelScale(0.1)}>+LBL</Button>
         </div>
