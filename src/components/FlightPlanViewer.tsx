@@ -18,7 +18,17 @@ function generateSquawk(): string {
 export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewerProps) {
     // Try to load manual flight plan data first, fall back to aircraft data
     const manualFP = (window as any).getManualFlightPlan?.(aircraft.playerName);
-    
+
+    const formatFlightLevel = (fl?: string | number) => {
+        const n = fl === undefined || fl === null ? NaN : parseInt(String(fl), 10);
+        if (!Number.isFinite(n)) return undefined;
+        return n < 100 ? n.toString().padStart(2, '0') : n.toString().padStart(3, '0');
+    };
+
+    const initialAltitude = manualFP?.altitude
+        || formatFlightLevel(aircraft.flightPlanLevel)
+        || "N/A";
+
     const [squawk, setSquawk] = useState(manualFP?.squawk || generateSquawk());
     const deriveCallsign = () => aircraft.flightPlanCallsign || (window as any).getFlightPlanCallsign?.(aircraft.playerName) || '';
     const [callsign, setCallsign] = useState(manualFP?.callsign || deriveCallsign());
@@ -32,24 +42,19 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
     const [dragging, setDragging] = useState(false);
     const dragStart = useRef({ x: 0, y: 0 });
 
-    // Derive altitude from flight plan level or current altitude
-    const flFromPlan = aircraft.flightPlanLevel ? parseInt(aircraft.flightPlanLevel, 10) : NaN;
-    const flComputed = Math.round(aircraft.altitude / 100);
-    const flDisplayBase = Number.isFinite(flFromPlan) ? flFromPlan : flComputed;
-    const flightLevel = flDisplayBase < 100 
-        ? flDisplayBase.toString().padStart(2, '0')
-        : flDisplayBase.toString().padStart(3, '0');
-    const [altitude, setAltitude] = useState(manualFP?.altitude || flightLevel);
+    // Altitude should never fall back to current altitude; use filed FL or N/A
+    const [altitude, setAltitude] = useState(initialAltitude);
 
     // Reset state when aircraft changes
     useEffect(() => {
-        setCallsign(deriveCallsign());
-        setApData(aircraft.flightPlanAircraft || aircraft.aircraftType || "");
-        setOrigin(aircraft.flightPlanOrigin || "");
-        setDestination(aircraft.flightPlanDestination || "");
-        setRoute(aircraft.flightPlanRoute || "");
-        setSquawk(generateSquawk());
-        setAltitude(flightLevel);
+        const latestManual = (window as any).getManualFlightPlan?.(aircraft.playerName);
+        setCallsign(latestManual?.callsign || deriveCallsign());
+        setApData(latestManual?.apData || aircraft.flightPlanAircraft || aircraft.aircraftType || "");
+        setOrigin(latestManual?.origin || aircraft.flightPlanOrigin || "");
+        setDestination(latestManual?.destination || aircraft.flightPlanDestination || "");
+        setRoute(latestManual?.route || aircraft.flightPlanRoute || "");
+        setSquawk(latestManual?.squawk || generateSquawk());
+        setAltitude(latestManual?.altitude || formatFlightLevel(aircraft.flightPlanLevel) || "N/A");
     }, [aircraft.callsign]); // Reset when aircraft callsign changes (indicates new spawn)
 
     // Sync callsign changes to scope
