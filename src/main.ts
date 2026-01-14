@@ -36,8 +36,9 @@ let toolbarVisible = true;
 // const POLL_INTERVAL = 3000;
 // const POLL_ROUTES = ["/acft-data", "/acft-data/event"];
 const ROUTE_SWITCH_DELAY = 1000;
-const WS_URL = "wss://24data.ptfs.app/wss";
-const HTTP_API_BASE = "https://24data.ptfs.app";
+// Allow overriding endpoints via Vite envs so we can point to a proxy without changing code.
+const HTTP_API_BASE = (import.meta as any).env?.VITE_HTTP_API_BASE ?? "https://24data.ptfs.app";
+const WS_URL = (import.meta as any).env?.VITE_WS_URL ?? "wss://24data.ptfs.app/wss";
 const DOUBLE_CLICK_MS = 300;
 const DOUBLE_CLICK_DISTANCE = 200;
 
