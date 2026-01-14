@@ -280,8 +280,38 @@ function checkAuthentication(callback: () => void) {
         }
     }
 
-    // Load cached flight plans on startup
-    loadCachedFlightPlans();
+    // Load flight plans from Supabase and localStorage
+    async function loadInitialFlightPlans() {
+        // First load from localStorage as fallback
+        loadCachedFlightPlans();
+        
+        // Then fetch from Supabase for most up-to-date data
+        try {
+            const { fetchAllFlightPlans, convertSupabaseToFlightPlan } = await import('./supabaseClient');
+            const supabasePlans = await fetchAllFlightPlans();
+            
+            supabasePlans.forEach((row: any) => {
+                const fp = convertSupabaseToFlightPlan(row);
+                if (fp.robloxName) {
+                    flightPlans[fp.robloxName] = fp;
+                    const pnNorm = normalizePlayer(fp.robloxName);
+                    if (pnNorm) flightPlansByPlayer[pnNorm] = fp;
+                    const rcNorm = normalizeCallsign(fp.realcallsign);
+                    if (rcNorm) flightPlansByRealCallsign[rcNorm] = fp;
+                    if (fp.callsign && !flightPlanCallsigns[fp.robloxName]) {
+                        flightPlanCallsigns[fp.robloxName] = fp.callsign;
+                    }
+                }
+            });
+            
+            console.log(`✅ Loaded ${supabasePlans.length} flight plans from Supabase`);
+        } catch (err) {
+            console.warn('⚠️  Could not fetch from Supabase, using cached data only:', err);
+        }
+    }
+    
+    // Start loading flight plans
+    loadInitialFlightPlans();
 
     function normalizeCallsign(cs: string | undefined | null): string | undefined {
         if (!cs) return undefined;
@@ -296,6 +326,10 @@ function checkAuthentication(callback: () => void) {
     // Manual overrides for flight plan callsign
     const CALLSIGN_OVERRIDES_KEY = "24rc_callsign_overrides";
     const flightPlanCallsigns: { [playerName: string]: string } = {};
+
+    // Manual flight plan edits storage
+    const MANUAL_FLIGHT_PLANS_KEY = "24rc_manual_flight_plans";
+    const manualFlightPlans: { [playerName: string]: any } = {};
 
     // Load manual callsign overrides from localStorage
     function loadCallsignOverrides() {
@@ -318,7 +352,31 @@ function checkAuthentication(callback: () => void) {
         }
     }
 
+    // Load manual flight plan data from localStorage
+    function loadManualFlightPlans() {
+        try {
+            const cached = localStorage.getItem(MANUAL_FLIGHT_PLANS_KEY);
+            if (!cached) return;
+            const stored = JSON.parse(cached);
+            Object.assign(manualFlightPlans, stored);
+            console.log(`📋 Loaded ${Object.keys(stored).length} manual flight plan(s)`);
+        } catch (e) {
+            console.error("Failed to load manual flight plans:", e);
+        }
+    }
+
+    // Save manual flight plan data to localStorage
+    function saveManualFlightPlan(playerName: string, data: any) {
+        try {
+            manualFlightPlans[playerName] = { ...data, ts: Date.now() };
+            localStorage.setItem(MANUAL_FLIGHT_PLANS_KEY, JSON.stringify(manualFlightPlans));
+        } catch (e) {
+            console.error("Failed to save manual flight plan:", e);
+        }
+    }
+
     loadCallsignOverrides();
+    loadManualFlightPlans();
 
     // Expose flight plan callsign management globally
     (window as any).setFlightPlanCallsign = (playerName: string, callsign: string) => {
@@ -334,6 +392,10 @@ function checkAuthentication(callback: () => void) {
     (window as any).getFlightPlanCallsign = (playerName: string): string | undefined => {
         return flightPlanCallsigns[playerName];
     };
+
+    // Expose manual flight plan management globally
+    (window as any).saveManualFlightPlan = saveManualFlightPlan;
+    (window as any).getManualFlightPlan = (playerName: string) => manualFlightPlans[playerName];
 
     // Expose event mode controls for UI button
     (window as any).toggleEventMode = () => toggleEventMode();

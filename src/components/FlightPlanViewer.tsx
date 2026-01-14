@@ -16,13 +16,16 @@ function generateSquawk(): string {
 }
 
 export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewerProps) {
-    const [squawk, setSquawk] = useState(generateSquawk());
+    // Try to load manual flight plan data first, fall back to aircraft data
+    const manualFP = (window as any).getManualFlightPlan?.(aircraft.playerName);
+    
+    const [squawk, setSquawk] = useState(manualFP?.squawk || generateSquawk());
     const deriveCallsign = () => aircraft.flightPlanCallsign || (window as any).getFlightPlanCallsign?.(aircraft.playerName) || '';
-    const [callsign, setCallsign] = useState(deriveCallsign);
-    const [apData, setApData] = useState(aircraft.flightPlanAircraft || aircraft.aircraftType || "");
-    const [origin, setOrigin] = useState(aircraft.flightPlanOrigin || "");
-    const [destination, setDestination] = useState(aircraft.flightPlanDestination || "");
-    const [route, setRoute] = useState(aircraft.flightPlanRoute || "");
+    const [callsign, setCallsign] = useState(manualFP?.callsign || deriveCallsign());
+    const [apData, setApData] = useState(manualFP?.apData || aircraft.flightPlanAircraft || aircraft.aircraftType || "");
+    const [origin, setOrigin] = useState(manualFP?.origin || aircraft.flightPlanOrigin || "");
+    const [destination, setDestination] = useState(manualFP?.destination || aircraft.flightPlanDestination || "");
+    const [route, setRoute] = useState(manualFP?.route || aircraft.flightPlanRoute || "");
     
     const panelRef = useRef<HTMLDivElement>(null);
     const [position, setPosition] = useState({ x: window.innerWidth / 2 - 200, y: 100 });
@@ -36,7 +39,7 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
     const flightLevel = flDisplayBase < 100 
         ? flDisplayBase.toString().padStart(2, '0')
         : flDisplayBase.toString().padStart(3, '0');
-    const [altitude, setAltitude] = useState(flightLevel);
+    const [altitude, setAltitude] = useState(manualFP?.altitude || flightLevel);
 
     // Reset state when aircraft changes
     useEffect(() => {
@@ -60,6 +63,21 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
             }
         }
     }, [callsign]);
+
+    // Save flight plan data to localStorage whenever fields change
+    useEffect(() => {
+        if ((window as any).saveManualFlightPlan) {
+            (window as any).saveManualFlightPlan(aircraft.playerName, {
+                callsign,
+                apData,
+                origin,
+                destination,
+                route,
+                altitude,
+                squawk
+            });
+        }
+    }, [callsign, apData, origin, destination, route, altitude, squawk]);
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {

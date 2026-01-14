@@ -1,0 +1,15 @@
+# Render.com Deployment Configuration
+services:
+  - type: web
+    name: flight-plan-listener
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
