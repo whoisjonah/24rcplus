@@ -136,7 +136,7 @@ export default class AircraftLabel {
             style: {
                 fontFamily: 'ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace',
                 fontSize: 14,
-                fill: 0x00ff00,
+                fill: 0xff0000,
                 align: 'left',
             },
         });
@@ -144,10 +144,12 @@ export default class AircraftLabel {
         this.fpButton.visible = false;
         this.fpButton.on('pointerdown', () => this.handleFPButtonClick());
         this.fpButton.on('pointerover', () => {
-            this.fpButton.style.fill = 0x00cc00;
+            const hasFlightPlan = this.acftData.flightPlanCallsign || this.acftData.flightPlanOrigin;
+            this.fpButton.style.fill = hasFlightPlan ? 0x00cc00 : 0xcc0000;
         });
         this.fpButton.on('pointerout', () => {
-            this.fpButton.style.fill = 0x00ff00;
+            const hasFlightPlan = this.acftData.flightPlanCallsign || this.acftData.flightPlanOrigin;
+            this.fpButton.style.fill = hasFlightPlan ? 0x00ff00 : 0xff0000;
         });
         this.stage.addChild(this.fpButton);
 
@@ -202,7 +204,10 @@ export default class AircraftLabel {
             const asp = this.assignedSpeed ? `ASP${this.assignedSpeed}` : "ASP";
             this.dataBlock.text = `${callsign}\nFL${altFormatted} ${speedFormatted}kt\n${afl} ${asp}`;
             
+            // Show FP button; color based on flight plan availability
             this.fpButton.visible = true;
+            const hasFlightPlan = this.acftData.flightPlanCallsign || this.acftData.flightPlanOrigin;
+            this.fpButton.style.fill = hasFlightPlan ? 0x00ff00 : 0xff0000;
         } else {
             // Show only callsign for unassumed aircraft
             this.dataBlock.style = unassumedTextStyle;

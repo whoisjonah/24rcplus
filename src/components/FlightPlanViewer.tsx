@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { AircraftData } from '../types';
 
 interface FlightPlanViewerProps {
@@ -19,24 +19,54 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
     const [squawk] = useState(generateSquawk());
     const deriveCallsign = () => aircraft.flightPlanCallsign || (window as any).getFlightPlanCallsign?.(aircraft.playerName) || '';
     const [flightPlanCallsign, setFlightPlanCallsign] = useState(deriveCallsign);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const [position, setPosition] = useState({ x: window.innerWidth / 2 - 200, y: 100 });
+    const [dragging, setDragging] = useState(false);
+    const dragStart = useRef({ x: 0, y: 0 });
 
     // Keep local callsign in sync when aircraft prop updates with fresh flight plan data
     useEffect(() => {
         setFlightPlanCallsign(deriveCallsign());
     }, [aircraft]);
 
-    const route = aircraft.flightPlanRoute !== undefined ? aircraft.flightPlanRoute : "RADAR VECTORS";
-    const origin = aircraft.flightPlanOrigin || "IRFD";
-    const destination = aircraft.flightPlanDestination || "ITKO";
-    const rules = aircraft.flightPlanRules || "";
-    const filedAircraft = aircraft.flightPlanAircraft || aircraft.aircraftType;
-    // Display flight level: below FL100 show two digits, otherwise three
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (dragging) {
+                setPosition({
+                    x: e.clientX - dragStart.current.x,
+                    y: e.clientY - dragStart.current.y,
+                });
+            }
+        };
+        const handleMouseUp = () => setDragging(false);
+        if (dragging) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            return () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+        }
+    }, [dragging]);
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        if (panelRef.current) {
+            const rect = panelRef.current.getBoundingClientRect();
+            dragStart.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            setDragging(true);
+        }
+    };
+
+    const route = aircraft.flightPlanRoute !== undefined ? aircraft.flightPlanRoute : "N/A";
+    const origin = aircraft.flightPlanOrigin || "N/A";
+    const destination = aircraft.flightPlanDestination || "N/A";
+    const filedAircraft = aircraft.flightPlanAircraft || aircraft.aircraftType || "N/A";
     const flFromPlan = aircraft.flightPlanLevel ? parseInt(aircraft.flightPlanLevel, 10) : NaN;
     const flComputed = Math.round(aircraft.altitude / 100);
     const flDisplayBase = Number.isFinite(flFromPlan) ? flFromPlan : flComputed;
     const flightLevel = flDisplayBase < 100 
         ? flDisplayBase.toString().padStart(2, '0')
-        : flDisplayBase.toString();
+        : flDisplayBase.toString().padStart(3, '0');
 
     const handleSaveCallsign = () => {
         if ((window as any).setFlightPlanCallsign) {
@@ -48,61 +78,51 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
     };
 
     return (
-        <div className="flight-plan-overlay" onClick={onClose}>
-            <div className="flight-plan-panel" onClick={(e) => e.stopPropagation()}>
-                <div className="flight-plan-header">
-                    <h2>Flight Plan</h2>
-                    <button className="close-btn" onClick={onClose}>✕</button>
+        <div 
+            ref={panelRef}
+            className="flight-plan-panel" 
+            style={{ left: `${position.x}px`, top: `${position.y}px`, cursor: dragging ? 'grabbing' : 'grab' }}
+        >
+            <div className="flight-plan-header" onMouseDown={handleMouseDown}>
+                <h2>Flight Plan</h2>
+                <button className="close-btn" onClick={onClose}>✕</button>
+            </div>
+            
+            <div className="flight-plan-content">
+                <div className="fp-row">
+                    <div className="fp-field">
+                        <span className="fp-label">Callsign</span>
+                        <div className="fp-value">{flightPlanCallsign || aircraft.callsign}</div>
+                    </div>
+                    <div className="fp-field">
+                        <span className="fp-label">AP Data</span>
+                        <div className="fp-value">{filedAircraft}</div>
+                    </div>
                 </div>
-                
-                <div className="flight-plan-content">
-                    <div className="fp-row">
-                        <div className="fp-cell">
-                            <span className="fp-label">Callsign (In-Game)</span>
-                            <input className="fp-value" value={aircraft.callsign} disabled />
-                        </div>
-                        <div className="fp-cell">
-                            <span className="fp-label">Callsign (Flight Plan)</span>
-                            <input 
-                                className="fp-value" 
-                                value={flightPlanCallsign} 
-                                onChange={(e) => setFlightPlanCallsign(e.target.value)}
-                                placeholder="Enter flight plan callsign"
-                            />
-                            <button onClick={handleSaveCallsign} style={{marginTop: '4px', padding: '4px 8px', fontSize: '12px'}}>Save</button>
-                        </div>
-                        <div className="fp-cell">
-                            <span className="fp-label">AF Data</span>
-                            <input className="fp-value" value={filedAircraft} disabled />
-                        </div>
-                    </div>
 
-                    <div className="fp-row">
-                        <div className="fp-cell">
-                            <span className="fp-label">Origin</span>
-                            <input className="fp-value" value={origin} disabled />
-                        </div>
-                        <div className="fp-cell">
-                            <span className="fp-label">Destination</span>
-                            <input className="fp-value" value={destination} disabled />
-                        </div>
-                        <div className="fp-cell">
-                            <span className="fp-label">Altitude</span>
-                            <input className="fp-value" value={flightLevel} disabled />
-                        </div>
-                        <div className="fp-cell">
-                            <span className="fp-label">Squawk</span>
-                            <input className="fp-value" value={squawk} disabled />
-                        </div>
+                <div className="fp-row">
+                    <div className="fp-field">
+                        <span className="fp-label">Origin</span>
+                        <div className="fp-value">{origin}</div>
                     </div>
+                    <div className="fp-field">
+                        <span className="fp-label">Destination</span>
+                        <div className="fp-value">{destination}</div>
+                    </div>
+                    <div className="fp-field">
+                        <span className="fp-label">Altitude</span>
+                        <div className="fp-value">{flightLevel}</div>
+                    </div>
+                    <div className="fp-field">
+                        <span className="fp-label">Squawk</span>
+                        <div className="fp-value">{squawk}</div>
+                    </div>
+                </div>
 
-                    <div className="fp-row">
-                        <div className="fp-cell">
-                            <span className="fp-label">Flight Rules</span>
-                            <input className="fp-value" value={rules} disabled />
-                        </div>
+                <div className="fp-row fp-route">
+                    <div className="fp-field" style={{ flex: 1 }}>
                         <span className="fp-label">Route</span>
-                        <input className="fp-value route-input" value={route} disabled />
+                        <div className="fp-value">{route}</div>
                     </div>
                 </div>
             </div>
