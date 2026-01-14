@@ -60,21 +60,16 @@ function checkAuthentication(callback: () => void) {
         return;
     }
 
-    const isAuthenticated = localStorage.getItem('24rc_authenticated') === 'true';
-    if (isAuthenticated) {
-        callback();
-    } else {
-        const root = createRoot(authRoot);
-        root.render(
-            React.createElement(PasswordScreen, {
-                onAuthenticated: () => {
-                    root.unmount();
-                    authRoot.remove();
-                    callback();
-                }
-            })
-        );
-    }
+    const root = createRoot(authRoot);
+    root.render(
+        React.createElement(PasswordScreen, {
+            onAuthenticated: () => {
+                root.unmount();
+                authRoot.remove();
+                callback();
+            }
+        })
+    );
 }
 
 (async () => {

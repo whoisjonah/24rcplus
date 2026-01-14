@@ -12,7 +12,6 @@ export default function PasswordScreen({ onAuthenticated }: PasswordScreenProps)
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (password === ADMIN_PASSWORD) {
-            localStorage.setItem("24rc_authenticated", "true");
             onAuthenticated();
         } else {
             setError("Invalid password");
