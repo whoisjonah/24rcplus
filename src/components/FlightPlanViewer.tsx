@@ -38,6 +38,17 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
         : flDisplayBase.toString().padStart(3, '0');
     const [altitude, setAltitude] = useState(flightLevel);
 
+    // Reset state when aircraft changes
+    useEffect(() => {
+        setCallsign(deriveCallsign());
+        setApData(aircraft.flightPlanAircraft || aircraft.aircraftType || "");
+        setOrigin(aircraft.flightPlanOrigin || "");
+        setDestination(aircraft.flightPlanDestination || "");
+        setRoute(aircraft.flightPlanRoute || "");
+        setSquawk(generateSquawk());
+        setAltitude(flightLevel);
+    }, [aircraft.callsign]); // Reset when aircraft callsign changes (indicates new spawn)
+
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (dragging) {
@@ -65,17 +76,6 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
             setDragging(true);
         }
     };
-
-    const route = aircraft.flightPlanRoute !== undefined ? aircraft.flightPlanRoute : "N/A";
-    const origin = aircraft.flightPlanOrigin || "N/A";
-    const destination = aircraft.flightPlanDestination || "N/A";
-    const filedAircraft = aircraft.flightPlanAircraft || aircraft.aircraftType || "N/A";
-    const flFromPlan = aircraft.flightPlanLevel ? parseInt(aircraft.flightPlanLevel, 10) : NaN;
-    const flComputed = Math.round(aircraft.altitude / 100);
-    const flDisplayBase = Number.isFinite(flFromPlan) ? flFromPlan : flComputed;
-    const flightLevel = flDisplayBase < 100 
-        ? flDisplayBase.toString().padStart(2, '0')
-        : flDisplayBase.toString().padStart(3, '0');
 
     return (
         <div 
