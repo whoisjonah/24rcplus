@@ -358,8 +358,8 @@ const antialias = false;
     }, {
         heartbeatInterval: 15000,
         heartbeatTimeout: 30000,
-        reconnectBase: 2000,
-        reconnectMax: 30000,
+        reconnectBase: 5000,   // slower initial retry (5s)
+        reconnectMax: 60000,   // cap at 60s between retries
     });
 
     // Poll HTTP API for aircraft data to check for flight plan fields (backup method)
