@@ -167,46 +167,7 @@ function MapsSection() {
         }
     }
 
-    // Special grouped controls for RFDALL: allow loading all ground charts and runway layers
-    if (airport === "RFDALL") {
-        const groupAirports = ["IRFD", "IMLR", "IGAR", "IBLT", "ITRC"];
-
-        async function loadAllGround() {
-            for (const a of groupAirports) {
-                const cat = assetManager.getCategory(a);
-                if (!cat) continue;
-                for (const asset of cat.assets) {
-                    if (asset.id === "GROUND") await assetManager.loadAsset(`${a}/${asset.id}`);
-                }
-            }
-            setTick({});
-        }
-
-        async function toggleRunways(shouldLoad: boolean) {
-            for (const a of groupAirports) {
-                const cat = assetManager.getCategory(a);
-                if (!cat) continue;
-                for (const asset of cat.assets) {
-                    if (asset.id.startsWith("RWY")) {
-                        if (shouldLoad) await assetManager.loadAsset(`${a}/${asset.id}`);
-                        else assetManager.unloadAsset(`${a}/${asset.id}`);
-                    }
-                }
-            }
-            setTick({});
-        }
-
-        let anyGroundLoaded = groupAirports.some(a => assetManager.isAssetLoaded(`${a}/GROUND`));
-        let anyRunwayLoaded = groupAirports.some(a => {
-            const cat = assetManager.getCategory(a);
-            return cat?.assets.some(asset => asset.id.startsWith("RWY") && assetManager.isAssetLoaded(`${a}/${asset.id}`));
-        });
-
-        maps.push(<div key="rfdall-controls">
-            <Button pressed={anyGroundLoaded} onClick={() => loadAllGround()}>LOAD ALL GND</Button>
-            <Button pressed={anyRunwayLoaded} onClick={() => toggleRunways(!anyRunwayLoaded)}>EXT CL</Button>
-        </div>);
-    }
+    // grouped controls have moved to the LAYERS panel
 
     function getMap(i: number) {
         return maps[i] || <Button disabled />
