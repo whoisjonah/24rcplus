@@ -60,29 +60,32 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
         const oPt = getPt(o);
         const dPt = getPt(d);
 
-        // fallback: if origin not known but we have aircraft position, use it as origin
-        const acPt = { x: aircraft.position.x, y: aircraft.position.y };
-        const originPt = oPt || acPt;
-        const destPt = dPt || null;
+        // If we have both centroids, compute bearing between them. Otherwise fallback to aircraft heading.
+        if (dPt && (oPt || true)) {
+            const originPt = oPt || { x: aircraft.position.x, y: aircraft.position.y };
+            const dx = dPt.x - originPt.x;
+            const dy = dPt.y - originPt.y;
+            // Bearing: 0 = north, increase clockwise
+            let angle = (Math.atan2(dx, dy) * 180) / Math.PI;
+            if (isNaN(angle)) angle = 0;
+            angle = (angle + 360) % 360;
+            const direction = angle >= 0 && angle < 180 ? 'eastbound' : 'westbound';
+            return { heading: Math.round(angle), direction };
+        }
 
-        if (!destPt) return { heading: NaN, direction: undefined };
-
-        const dx = destPt.x - originPt.x;
-        const dy = destPt.y - originPt.y;
-        // Bearing: 0 = north, increase clockwise
-        let angle = (Math.atan2(dx, dy) * 180) / Math.PI;
-        if (isNaN(angle)) angle = 0;
-        angle = (angle + 360) % 360;
-        const direction = angle >= 0 && angle < 180 ? 'eastbound' : 'westbound';
-        return { heading: Math.round(angle), direction };
-    }, [origin, destination, aircraft.position.x, aircraft.position.y]);
+        // Fallback: use aircraft heading (0 = north, clockwise)
+        const raw = Number(aircraft.heading);
+        const angle = Number.isFinite(raw) ? ((raw % 360) + 360) % 360 : NaN;
+        const direction = Number.isFinite(angle) ? (angle >= 0 && angle < 180 ? 'eastbound' : 'westbound') : undefined;
+        return { heading: Number.isFinite(angle) ? Math.round(angle) : NaN, direction };
+    }, [origin, destination, aircraft.position.x, aircraft.position.y, aircraft.heading]);
 
     const altitudeValidity = useMemo(() => {
         const fl = parseInt(String(altitude || '').replace(/[^0-9]/g, ''), 10);
         if (!Number.isFinite(fl)) return { valid: undefined, expected: undefined };
         const parity = fl % 2 === 1 ? 'odd' : 'even';
         const expected = flightDirection.direction === 'eastbound' ? 'odd' : flightDirection.direction === 'westbound' ? 'even' : undefined;
-        const valid = expected ? parity === expected : undefined;
+        const valid = expected ? parity === expected : false;
         return { valid, expected, parity };
     }, [altitude, flightDirection]);
 
