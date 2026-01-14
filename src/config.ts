@@ -10,4 +10,6 @@ export default {
     groundTrafficRevealZoom: 1.1,
     // Debug: when true, always show ground traffic regardless of hide flag or zoom
     forceShowGroundTraffic: false,
+    // Automatically toggle `hideGroundTraffic` based on zoom crossing the threshold
+    autoToggleGroundByZoom: true,
 };

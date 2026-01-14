@@ -356,6 +356,15 @@ function checkAuthentication(callback: () => void) {
         showToast(`groundTrafficRevealZoom = ${next}`, 'info', 1500);
     };
     (window as any).getGroundTrafficRevealZoom = () => config.groundTrafficRevealZoom;
+    function updateGroundVisibilityBasedOnZoom() {
+        if (!config.autoToggleGroundByZoom) return;
+        const zoomShowsGround = basemap.scale.x >= (config.groundTrafficRevealZoom || 1.1);
+        const shouldHide = !zoomShowsGround && !config.forceShowGroundTraffic;
+        if (config.hideGroundTraffic !== shouldHide) {
+            config.hideGroundTraffic = shouldHide;
+            showToast(`HIDE GND ${config.hideGroundTraffic ? 'ON' : 'OFF'} (zoom)`,'info',900);
+        }
+    }
     // Debug helpers: inspect and control basemap scale and hideGroundTraffic
     (window as any).getBasemapScale = () => basemap.scale.x;
     (window as any).setBasemapScale = (v: number) => {
@@ -363,6 +372,7 @@ function checkAuthentication(callback: () => void) {
         basemap.scale.set(s);
         positionGraphics();
         showToast(`basemap.scale = ${s}`, 'info', 1200);
+        updateGroundVisibilityBasedOnZoom();
     };
     (window as any).getHideGroundTraffic = () => config.hideGroundTraffic;
     (window as any).toggleForceShowGroundTraffic = () => {
@@ -449,6 +459,7 @@ function checkAuthentication(callback: () => void) {
             basemap.scale.set(basemap.scale.x * 1.1);
 
         positionGraphics();
+        updateGroundVisibilityBasedOnZoom();
     })
 
     // Update aircraft tracks
