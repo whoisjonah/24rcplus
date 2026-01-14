@@ -109,8 +109,8 @@ Game → WebSocket Server → Your Listener (24/7) → Supabase
 - Ensure WebSocket connection is successful (`✅ Connected to WebSocket`)
 
 **Old/stale flight plans?**
-- The listener automatically cleans up flight plans older than 24 hours
+- The listener automatically cleans up flight plans older than 24 hours (configurable via `FLIGHT_PLAN_TTL_MS` env var; set to `43200000` for 12 hours)
 - You can manually clean up in Supabase SQL Editor:
-  ```sql
-  DELETE FROM flight_plans WHERE last_seen < NOW() - INTERVAL '12 hours';
-  ```
+   ```sql
+   DELETE FROM flight_plans WHERE last_seen < NOW() - INTERVAL '12 hours';
+   ```

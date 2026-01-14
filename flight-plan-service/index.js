@@ -24,6 +24,7 @@ const HEARTBEAT_TIMEOUT = 30000;
 const RECONNECT_BASE = 2000;
 const RECONNECT_MAX = 30000;
 let reconnectDelay = RECONNECT_BASE;
+const FLIGHT_PLAN_TTL_MS = Number(process.env.FLIGHT_PLAN_TTL_MS || (24 * 60 * 60 * 1000)); // default 24h
 
 async function saveFlightPlan(fp) {
     try {
@@ -152,16 +153,17 @@ function connect() {
     });
 }
 
-// Cleanup old flight plans every hour
+// Cleanup old flight plans every hour based on TTL
 setInterval(async () => {
     try {
-        const { data, error } = await supabase
+        const cutoff = new Date(Date.now() - FLIGHT_PLAN_TTL_MS).toISOString();
+        const { error } = await supabase
             .from('flight_plans')
             .delete()
-            .lt('last_seen', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+            .lt('last_seen', cutoff);
         
         if (!error) {
-            console.log('🧹 Cleaned up old flight plans');
+            console.log(`🧹 Cleaned up old flight plans older than ${Math.round(FLIGHT_PLAN_TTL_MS / 3600000)}h`);
         }
     } catch (err) {
         console.error('❌ Error cleaning up:', err);
