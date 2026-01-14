@@ -85,7 +85,7 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
         if (!Number.isFinite(fl)) return { valid: undefined, expected: undefined };
         const parity = fl % 2 === 1 ? 'odd' : 'even';
         const expected = flightDirection.direction === 'eastbound' ? 'odd' : flightDirection.direction === 'westbound' ? 'even' : undefined;
-        const valid = expected ? parity === expected : false;
+        const valid = expected ? parity === expected : undefined;
         return { valid, expected, parity };
     }, [altitude, flightDirection]);
 
@@ -190,11 +190,25 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
                     </div>
                     <div className="fp-field">
                         <span className="fp-label">Altitude</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <input className="fp-value fp-input" type="text" value={altitude} onChange={(e) => setAltitude(e.target.value)} />
+                        <div style={{ position: 'relative', display: 'inline-block' }}>
+                            <input className="fp-value fp-input" type="text" value={altitude} onChange={(e) => setAltitude(e.target.value)} style={{ paddingRight: 28 }} />
                             {altitudeValidity.valid !== undefined && (
-                                <div title={altitudeValidity.valid ? 'Flight level parity OK' : `Expected ${altitudeValidity.expected} FLs for ${flightDirection.direction || 'unknown'}`}
-                                    style={{ width: 12, height: 12, borderRadius: 8, background: altitudeValidity.valid ? '#00cc00' : '#cc0000', boxShadow: '0 0 4px rgba(0,0,0,0.25)' }} />
+                                <div
+                                    title={altitudeValidity.valid ? 'Flight level parity OK' : `Expected ${altitudeValidity.expected} FLs for ${flightDirection.direction || 'unknown'}`}
+                                    style={{
+                                        position: 'absolute',
+                                        right: 6,
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        width: 12,
+                                        height: 12,
+                                        borderRadius: 8,
+                                        background: altitudeValidity.valid ? '#00cc00' : '#cc0000',
+                                        boxShadow: '0 0 4px rgba(0,0,0,0.25)',
+                                        pointerEvents: 'none',
+                                        zIndex: 3
+                                    }}
+                                />
                             )}
                         </div>
                     </div>
