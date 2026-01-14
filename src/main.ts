@@ -349,6 +349,14 @@ function checkAuthentication(callback: () => void) {
         acftLabels.forEach(label => label.applyFontScale());
     };
 
+    // Allow runtime tuning of ground traffic reveal zoom for quick testing
+    (window as any).setGroundTrafficRevealZoom = (v: number) => {
+        const next = Number(v) || config.groundTrafficRevealZoom;
+        config.groundTrafficRevealZoom = next;
+        showToast(`groundTrafficRevealZoom = ${next}`, 'info', 1500);
+    };
+    (window as any).getGroundTrafficRevealZoom = () => config.groundTrafficRevealZoom;
+
     // Expose toggleAssumedAircraft globally
     (window as any).toggleAssumedAircraft = (callsign: string) => {
         const label = acftLabels.find(l => l.acftData.callsign === callsign);
