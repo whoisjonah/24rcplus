@@ -365,6 +365,15 @@ function checkAuthentication(callback: () => void) {
         showToast(`basemap.scale = ${s}`, 'info', 1200);
     };
     (window as any).getHideGroundTraffic = () => config.hideGroundTraffic;
+    (window as any).toggleForceShowGroundTraffic = () => {
+        config.forceShowGroundTraffic = !config.forceShowGroundTraffic;
+        showToast(`forceShowGroundTraffic = ${config.forceShowGroundTraffic}`, 'info', 1200);
+        return config.forceShowGroundTraffic;
+    };
+    (window as any).setForceShowGroundTraffic = (v: boolean) => {
+        config.forceShowGroundTraffic = !!v;
+        showToast(`forceShowGroundTraffic = ${config.forceShowGroundTraffic}`, 'info', 1200);
+    };
 
     // Expose toggleAssumedAircraft globally
     (window as any).toggleAssumedAircraft = (callsign: string) => {
@@ -510,8 +519,8 @@ function checkAuthentication(callback: () => void) {
         
         // Filter based on config settings; assumed aircraft always shown
         // If zoomed in past `config.groundTrafficRevealZoom`, show ground traffic regardless of hide flag
-        const zoomShowsGround = basemap.scale.x >= (config.groundTrafficRevealZoom || 1.5);
-        if (config.hideGroundTraffic && !zoomShowsGround) {
+        const zoomShowsGround = basemap.scale.x >= (config.groundTrafficRevealZoom || 1.1);
+        if (config.hideGroundTraffic && !zoomShowsGround && !config.forceShowGroundTraffic) {
             acftDatas = acftDatas.filter(acft => !acft.isOnGround || assumedPlayers.has(acft.playerName));
         }
         
