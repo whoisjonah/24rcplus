@@ -1,5 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { AircraftData } from '../types';
+import airportCentroids from '../data/AirportCentroids.json';
 
 interface FlightPlanViewerProps {
     aircraft: AircraftData;
@@ -44,6 +45,46 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
 
     // Altitude should never fall back to current altitude; use filed FL or N/A
     const [altitude, setAltitude] = useState(initialAltitude);
+
+    // Compute direction (eastbound/westbound) and validate FL parity
+    const flightDirection = useMemo(() => {
+        const norm = (s: string) => (s || '').trim().toUpperCase();
+        const o = norm(origin);
+        const d = norm(destination);
+        const getPt = (code: string) => {
+            if (!code) return null;
+            const p = (airportCentroids as any)[code];
+            return Array.isArray(p) && p.length === 2 ? { x: p[0], y: p[1] } : null;
+        };
+
+        const oPt = getPt(o);
+        const dPt = getPt(d);
+
+        // fallback: if origin not known but we have aircraft position, use it as origin
+        const acPt = { x: aircraft.position.x, y: aircraft.position.y };
+        const originPt = oPt || acPt;
+        const destPt = dPt || null;
+
+        if (!destPt) return { heading: NaN, direction: undefined };
+
+        const dx = destPt.x - originPt.x;
+        const dy = destPt.y - originPt.y;
+        // Bearing: 0 = north, increase clockwise
+        let angle = (Math.atan2(dx, dy) * 180) / Math.PI;
+        if (isNaN(angle)) angle = 0;
+        angle = (angle + 360) % 360;
+        const direction = angle >= 0 && angle < 180 ? 'eastbound' : 'westbound';
+        return { heading: Math.round(angle), direction };
+    }, [origin, destination, aircraft.position.x, aircraft.position.y]);
+
+    const altitudeValidity = useMemo(() => {
+        const fl = parseInt(String(altitude || '').replace(/[^0-9]/g, ''), 10);
+        if (!Number.isFinite(fl)) return { valid: undefined, expected: undefined };
+        const parity = fl % 2 === 1 ? 'odd' : 'even';
+        const expected = flightDirection.direction === 'eastbound' ? 'odd' : flightDirection.direction === 'westbound' ? 'even' : undefined;
+        const valid = expected ? parity === expected : undefined;
+        return { valid, expected, parity };
+    }, [altitude, flightDirection]);
 
     // Reset state when aircraft changes
     useEffect(() => {
@@ -146,7 +187,13 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
                     </div>
                     <div className="fp-field">
                         <span className="fp-label">Altitude</span>
-                        <input className="fp-value fp-input" type="text" value={altitude} onChange={(e) => setAltitude(e.target.value)} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <input className="fp-value fp-input" type="text" value={altitude} onChange={(e) => setAltitude(e.target.value)} />
+                            {altitudeValidity.valid !== undefined && (
+                                <div title={altitudeValidity.valid ? 'Flight level parity OK' : `Expected ${altitudeValidity.expected} FLs for ${flightDirection.direction || 'unknown'}`}
+                                    style={{ width: 12, height: 12, borderRadius: 8, background: altitudeValidity.valid ? '#00cc00' : '#cc0000', boxShadow: '0 0 4px rgba(0,0,0,0.25)' }} />
+                            )}
+                        </div>
                     </div>
                     <div className="fp-field">
                         <span className="fp-label">Squawk</span>
