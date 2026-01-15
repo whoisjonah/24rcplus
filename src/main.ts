@@ -230,10 +230,35 @@ function checkAuthentication(callback: () => void) {
         try {
             const { fetchAllFlightPlans, convertSupabaseToFlightPlan } = await import('./supabaseClient');
             const supabasePlans = await fetchAllFlightPlans();
-            
+            // Read any manual flight plans saved in localStorage so we don't
+            // overwrite operator edits when loading from Supabase.
+            let manualStored: { [key: string]: any } = {};
+            try {
+                const cached = localStorage.getItem(MANUAL_FLIGHT_PLANS_KEY);
+                if (cached) manualStored = JSON.parse(cached);
+            } catch (e) {
+                // ignore parse errors
+            }
+
             supabasePlans.forEach((row: any) => {
                 const fp = convertSupabaseToFlightPlan(row);
                 if (fp.robloxName) {
+                    // If operator has a manual flight plan for this player, check
+                    // whether the Supabase row represents a new filed plan. If it
+                    // does, clear the manual edit and apply the Supabase row.
+                    if (manualStored[fp.robloxName]) {
+                        if (isDifferentFiledPlan(fp, manualStored[fp.robloxName])) {
+                            delete manualStored[fp.robloxName];
+                            try {
+                                localStorage.setItem(MANUAL_FLIGHT_PLANS_KEY, JSON.stringify(manualStored));
+                            } catch (e) { }
+                            console.log(`🔓 Cleared manual edits for ${fp.robloxName} due to newer Supabase plan`);
+                        } else {
+                            console.log(`🔒 Keeping manual edit for ${fp.robloxName}; Supabase plan matches`);
+                            return;
+                        }
+                    }
+
                     flightPlans[fp.robloxName] = fp;
                     const pnNorm = normalizePlayer(fp.robloxName);
                     if (pnNorm) flightPlansByPlayer[pnNorm] = fp;
@@ -262,6 +287,23 @@ function checkAuthentication(callback: () => void) {
     function normalizePlayer(p: string | undefined | null): string | undefined {
         if (!p) return undefined;
         return p.trim().toUpperCase();
+    }
+
+    function isDifferentFiledPlan(fp: any, manual: any): boolean {
+        if (!manual) return false;
+        const norm = (s: any) => (s || '').toString().trim().toUpperCase();
+
+        // Compare callsign, route, origin/ destination, and flight level
+        if (norm(fp.callsign) !== norm(manual.callsign)) return true;
+        if (norm(fp.route) !== norm(manual.route)) return true;
+        if (norm(fp.departing) !== norm(manual.origin)) return true;
+        if (norm(fp.arriving) !== norm(manual.destination)) return true;
+
+        // Compare flight levels: normalize digits only
+        const digits = (s: any) => ('' + (s || '')).replace(/\D/g, '');
+        if (digits(fp.flightlevel) !== digits(manual.altitude)) return true;
+
+        return false;
     }
 
     // Manual overrides for flight plan callsign
@@ -647,19 +689,40 @@ function checkAuthentication(callback: () => void) {
         if (msg.t === "FLIGHT_PLAN" || msg.t === "FLIGHTPLAN" || msg.t === "EVENT_FLIGHT_PLAN") {
             const fp = msg.d as FlightPlanData;
             console.log("🛫 FLIGHT_PLAN EVENT:", { t: msg.t, robloxName: fp?.robloxName, callsign: fp?.callsign, realcallsign: fp?.realcallsign });
+            console.log(`🛫 Flight plan received: ${fp.robloxName} - ${fp.callsign || 'N/A'}`);
+
+            // If operator has a manual edit for this player, check whether the
+            // incoming plan represents a newly filed plan. If so, clear the
+            // manual edit and apply the incoming plan. Otherwise, ignore it
+            // so the operator's manual edits stay in effect.
+            if (manualFlightPlans[fp.robloxName]) {
+                if (isDifferentFiledPlan(fp, manualFlightPlans[fp.robloxName])) {
+                    // New filed plan detected — clear manual edits so incoming
+                    // values take priority.
+                    delete manualFlightPlans[fp.robloxName];
+                    try {
+                        localStorage.setItem(MANUAL_FLIGHT_PLANS_KEY, JSON.stringify(manualFlightPlans));
+                    } catch (e) { }
+                    console.log(`🔓 Cleared manual edits for ${fp.robloxName} due to new filed plan`);
+                    // fall through to apply incoming plan
+                } else {
+                    console.log(`🔒 Ignoring incoming plan for ${fp.robloxName} (manual edit present)`);
+                    return;
+                }
+            }
+
+            // Apply incoming plan to in-memory maps so the UI reflects it.
             if (fp && fp.robloxName) {
                 flightPlans[fp.robloxName] = fp;
                 const pnNorm = normalizePlayer(fp.robloxName);
                 if (pnNorm) flightPlansByPlayer[pnNorm] = fp;
                 const rcNorm = normalizeCallsign(fp.realcallsign);
                 if (rcNorm) flightPlansByRealCallsign[rcNorm] = fp;
-                if (fp.callsign) {
+                if (fp.callsign && !flightPlanCallsigns[fp.robloxName]) {
                     flightPlanCallsigns[fp.robloxName] = fp.callsign;
                 }
-                saveCallsignOverrides();
-                console.log(`   ✅ Stored FP for ${fp.robloxName}`);
             }
-            return;
+
         }
 
         const isMain = msg.t === "ACFT_DATA";

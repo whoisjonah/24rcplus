@@ -116,8 +116,13 @@ export default class LabelScratchPad {
     // Updates
     updateText() {
         this.textElement.style = this.label.isAssumed ? assumedTextStyle : unassumedTextStyle;
-        if(this.label.isAssumed) this.textElement.text = (this.content ? `A${this.content}` : "AHDG")
-        else this.textElement.text = this.content || ""
+        // Remarks (and the AHDG placeholder) are only shown for assumed targets.
+        // When unassumed, hide the scratchpad text even if content exists.
+        if (this.label.isAssumed) {
+            this.textElement.text = (this.content ? `A${this.content}` : "AHDG");
+        } else {
+            this.textElement.text = "";
+        }
         this.renderBorderBox();
     }
 
