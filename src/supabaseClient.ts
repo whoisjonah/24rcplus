@@ -8,10 +8,14 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export async function fetchAllFlightPlans() {
     try {
+        // Order ascending so that when the consumer iterates and assigns
+        // values the newest record for a given key ends up last (and thus
+        // remains the final value). This avoids returning an older plan
+        // when multiple rows exist for the same user.
         const { data, error } = await supabase
             .from('flight_plans')
             .select('*')
-            .order('updated_at', { ascending: false });
+            .order('updated_at', { ascending: true });
 
         if (error) {
             console.error('❌ Error fetching flight plans:', error);

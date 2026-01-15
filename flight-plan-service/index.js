@@ -24,7 +24,9 @@ const HEARTBEAT_TIMEOUT = 30000;
 const RECONNECT_BASE = 2000;
 const RECONNECT_MAX = 30000;
 let reconnectDelay = RECONNECT_BASE;
-const FLIGHT_PLAN_TTL_MS = Number(process.env.FLIGHT_PLAN_TTL_MS || (24 * 60 * 60 * 1000)); // default 24h
+// Default TTL for flight plans: 6 hours (in milliseconds). Can be overridden
+// via the FLIGHT_PLAN_TTL_MS env var when deploying the service.
+const FLIGHT_PLAN_TTL_MS = Number(process.env.FLIGHT_PLAN_TTL_MS || (6 * 60 * 60 * 1000)); // default 6h
 
 async function saveFlightPlan(fp) {
     try {
