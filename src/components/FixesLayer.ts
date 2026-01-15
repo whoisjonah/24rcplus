@@ -16,6 +16,11 @@ const fixesTextStyle: Partial<TextStyle> = {
     align: "center",
 };
 
+// Defaults for alignment tuning
+const DEFAULT_SCALE = 1.108;
+const DEFAULT_OFFSET_X = 0;
+const DEFAULT_OFFSET_Y = 0;
+
 export default class FixesLayer {
     stage: Container;
     basemap: Container;
@@ -34,6 +39,28 @@ export default class FixesLayer {
         this.draw();
     }
 
+    // Expose helper to adjust fix alignment at runtime from browser console.
+    // Usage example in console:
+    //   window.adjustFixes({ scale: 1.12, offsetX: 10, offsetY: -6 })
+    //   window.getFixesAlignment()
+    static exposeAdjustmentHelpers() {
+        (window as any).adjustFixes = ({ scale, offsetX, offsetY }: { scale?: number, offsetX?: number, offsetY?: number }) => {
+            if (typeof scale === 'number') localStorage.setItem('fixes_scale', String(scale));
+            if (typeof offsetX === 'number') localStorage.setItem('fixes_offset_x', String(offsetX));
+            if (typeof offsetY === 'number') localStorage.setItem('fixes_offset_y', String(offsetY));
+            // Trigger a redraw if a FixesLayer instance exists
+            try { (window as any).refreshFixes?.(); } catch (e) { }
+        };
+
+        (window as any).getFixesAlignment = () => {
+            return {
+                scale: Number(localStorage.getItem('fixes_scale')) || DEFAULT_SCALE,
+                offsetX: Number(localStorage.getItem('fixes_offset_x')) || DEFAULT_OFFSET_X,
+                offsetY: Number(localStorage.getItem('fixes_offset_y')) || DEFAULT_OFFSET_Y,
+            };
+        };
+    }
+
     private draw() {
         this.container.removeChildren();
 
@@ -41,10 +68,15 @@ export default class FixesLayer {
             return;
         }
 
-        // Fixed alignment factors derived from tuning session
-        const scaleFactor = 1.108;
-        const offsetX = 0;
-        const offsetY = 0;
+        // Alignment factors can be tuned at runtime via localStorage or
+        // window.adjustFixes({ scale, offsetX, offsetY }).
+        const storedScale = Number(localStorage.getItem('fixes_scale')) || DEFAULT_SCALE;
+        const storedOffsetX = Number(localStorage.getItem('fixes_offset_x')) || DEFAULT_OFFSET_X;
+        const storedOffsetY = Number(localStorage.getItem('fixes_offset_y')) || DEFAULT_OFFSET_Y;
+
+        const scaleFactor = storedScale;
+        const offsetX = storedOffsetX;
+        const offsetY = storedOffsetY;
 
         // Game world extents (from commented gameCoords)
         const topLeft = { x: -49222.1, y: -45890.8 };
@@ -103,3 +135,6 @@ export default class FixesLayer {
         this.container.destroy(true);
     }
 }
+
+// Ensure the window helper functions are available immediately
+try { FixesLayer.exposeAdjustmentHelpers(); } catch (e) { /* ignore during build */ }
