@@ -82,7 +82,17 @@ export default function FlightPlanViewer({ aircraft, onClose }: FlightPlanViewer
     }, [origin, destination, aircraft.position.x, aircraft.position.y, aircraft.heading]);
 
     const altitudeValidity = useMemo(() => {
-        const fl = parseInt(String(altitude || '').replace(/[^0-9]/g, ''), 10);
+        // Parse flight level for parity check:
+        // - strip any non-digits (removes leading "FL" or other chars)
+        // - remove insignificant trailing zeros so "050" -> "05" -> 5
+        const rawDigits = String(altitude || '').replace(/[^0-9]/g, '');
+        if (!rawDigits) return { valid: undefined, expected: undefined };
+        let significant = rawDigits.replace(/0+$/, '');
+        if (significant === '') {
+            // If all zeros (e.g. "000"), treat as 0
+            significant = '0';
+        }
+        const fl = parseInt(significant, 10);
         if (!Number.isFinite(fl)) return { valid: undefined, expected: undefined };
         const parity = fl % 2 === 1 ? 'odd' : 'even';
         const expected = flightDirection.direction === 'eastbound' ? 'odd' : flightDirection.direction === 'westbound' ? 'even' : undefined;
