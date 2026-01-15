@@ -471,14 +471,11 @@ function checkAuthentication(callback: () => void) {
     app.stage.on('touchstart', () => app.stage.on('pointermove', dragmap));
     app.stage.on('touchend', () => app.stage.off('pointermove', dragmap));
 
-    // Scroll wheel
+    // Scroll wheel - handle zoom but DO NOT call preventDefault() here because
+    // Pixi's internal DOM listeners may be passive which causes a console error
+    // if preventDefault() is invoked inside them. Instead we install a separate
+    // non-passive DOM listener on the canvas (below) to block page scrolling.
     app.stage.on('wheel', e => {
-        // Prevent the browser from scrolling the page when using the wheel over the canvas.
-        try {
-            // Pixi's federated event may expose the original DOM event
-            const orig = (e as any).originalEvent || e;
-            if (orig && typeof orig.preventDefault === 'function') orig.preventDefault();
-        } catch (err) { }
         // down scroll, zoom out
         if (e.deltaY > 0)
             basemap.scale.set(basemap.scale.x * 1 / 1.1);
@@ -488,16 +485,30 @@ function checkAuthentication(callback: () => void) {
 
         positionGraphics();
         updateGroundVisibilityBasedOnZoom();
-    })
+    });
 
-    // Add a non-passive wheel listener on the canvas to block default scrolling behavior
-    // when the mouse is over the map canvas.
-    try {
-        app.view.addEventListener('wheel', (ev: WheelEvent) => ev.preventDefault(), { passive: false });
-    } catch (err) {
-        // ignore if the browser doesn't support options
-        app.view.addEventListener('wheel', (ev: WheelEvent) => ev.preventDefault());
-    }
+    // Helper: add a non-passive wheel listener if the browser supports options.
+    const addNonPassiveWheel = (el: EventTarget, handler: (ev: WheelEvent) => void) => {
+        let supportsOptions = false;
+        try {
+            const opts = Object.defineProperty({}, 'passive', {
+                get() { supportsOptions = true; return false; }
+            });
+            window.addEventListener('testPassive', null as any, opts);
+            window.removeEventListener('testPassive', null as any, opts as any);
+        } catch {}
+
+        if (supportsOptions) {
+            el.addEventListener('wheel', handler as EventListener, { passive: false } as AddEventListenerOptions);
+        } else {
+            // Best-effort fallback; older browsers will attach the listener without options.
+            el.addEventListener('wheel', handler as EventListener);
+        }
+    };
+
+    // Add a non-passive wheel listener on the canvas to block default scrolling
+    // behavior when the mouse is over the map canvas.
+    addNonPassiveWheel(app.view, (ev: WheelEvent) => ev.preventDefault());
 
     // Update aircraft tracks
     ///////////////////////////
