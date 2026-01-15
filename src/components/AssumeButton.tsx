@@ -34,7 +34,7 @@ export default function AssumeButton({ aircraft, x, y }: AssumeButtonProps) {
                 className="assume-btn"
                 onClick={handleAssume}
             >
-                ASSUME
+                assume
             </button>
         </div>
     );
