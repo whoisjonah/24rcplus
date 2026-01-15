@@ -161,35 +161,31 @@ body {
     color: #5A5A5A;
 }
 
-/* Assume button: small, white lowercase text, no green outline, toolbar font */
-.assume-button-container {
-    z-index: 10005;
+/* Assume button: completely rebuilt minimal look to avoid style conflicts */
+.assume-button-container { z-index: 10005; }
+.assume-button-container .assume-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #222 !important;
+    border: none !important;
+    color: #ffffff !important;
+    text-transform: lowercase !important;
+    font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace !important;
+    font-size: 9pt !important;
+    padding: 2px 6px !important;
+    height: 20px !important;
+    min-width: 34px !important;
+    border-radius: 4px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
-.assume-btn {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.08);
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: #ffffff;
-    text-transform: lowercase;
-    font-family: inherit; /* same as toolbar */
-    font-size: 9pt; /* match toolbar */
-    line-height: 18px;
-    height: 20px;
-    min-width: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: none;
-}
-.assume-btn:hover {
-    background: rgba(255,255,255,0.02);
-}
-.assume-btn:focus {
-    outline: none;
-    box-shadow: none;
-}
+.assume-button-container .assume-btn:hover { background: #2a2a2a !important; }
+.assume-button-container .assume-btn:focus { box-shadow: none !important; outline: none !important; }
 
 .toast-container {
     position: fixed;
