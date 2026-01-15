@@ -483,6 +483,97 @@ function checkAuthentication(callback: () => void) {
         });
     };
 
+    // Refresh all flight plans from Supabase, clear manual FP adjustments and
+    // remove any assigned FL / speed from labels so the newest filed plans win.
+    (window as any).refreshAllFlightPlans = async () => {
+        try {
+            const { fetchAllFlightPlans, convertSupabaseToFlightPlan } = await import('./supabaseClient');
+            const supabasePlans = await fetchAllFlightPlans();
+
+            // Clear manual flight plan adjustments stored locally
+            try {
+                Object.keys(manualFlightPlans).forEach(k => delete manualFlightPlans[k]);
+                localStorage.removeItem(MANUAL_FLIGHT_PLANS_KEY);
+            } catch (e) { }
+
+            // Clear assigned FL / speed on labels
+            acftLabels.forEach(label => {
+                try {
+                    label.assignedFL = null;
+                    label.assignedSpeed = null;
+                    label.formatText();
+                    label.updateGraphics();
+                    if (label.scratchPad) label.scratchPad.updateText();
+                } catch (e) { }
+            });
+
+            // Reset in-memory flight plan maps and repopulate from Supabase
+            Object.keys(flightPlans).forEach(k => delete flightPlans[k]);
+            Object.keys(flightPlansByPlayer).forEach(k => delete flightPlansByPlayer[k]);
+            Object.keys(flightPlansByRealCallsign).forEach(k => delete flightPlansByRealCallsign[k]);
+
+            supabasePlans.forEach((row: any) => {
+                const fp = convertSupabaseToFlightPlan(row);
+                if (fp && fp.robloxName) {
+                    flightPlans[fp.robloxName] = fp;
+                    const pnNorm = normalizePlayer(fp.robloxName);
+                    if (pnNorm) flightPlansByPlayer[pnNorm] = fp;
+                    const rcNorm = normalizeCallsign(fp.realcallsign);
+                    if (rcNorm) flightPlansByRealCallsign[rcNorm] = fp;
+                    if (fp.callsign) flightPlanCallsigns[fp.robloxName] = fp.callsign;
+                }
+            });
+
+            // Re-apply flight plan fields to currently displayed aircraft
+            const acftDataMap: { [key: string]: any } = {};
+            const updatedAcftDatas = acftLabels.map(label => {
+                const acftData = label.acftData;
+                const csNorm = normalizeCallsign(acftData.callsign);
+                const pnNorm = normalizePlayer(acftData.playerName);
+                const plan = (csNorm && flightPlansByRealCallsign[csNorm])
+                    || (pnNorm && flightPlansByPlayer[pnNorm])
+                    || flightPlans[acftData.playerName];
+
+                const manualCallsign = flightPlanCallsigns[acftData.playerName];
+                const planCallsign = plan?.callsign;
+
+                const updated = {
+                    ...acftData,
+                    flightPlanCallsign: manualCallsign || planCallsign,
+                    flightPlanRoute: plan?.route && plan.route !== "N/A" ? plan.route : plan?.route,
+                    flightPlanOrigin: plan?.departing,
+                    flightPlanDestination: plan?.arriving,
+                    flightPlanRules: plan?.flightrules,
+                    flightPlanLevel: plan?.flightlevel ? plan.flightlevel.padStart(3, "0") : undefined,
+                    flightPlanAircraft: plan?.aircraft,
+                };
+
+                acftDataMap[updated.callsign] = updated;
+                acftDataMap[`player:${updated.playerName}`] = updated;
+
+                return { label, updated };
+            });
+
+            // Update modal manager with fresh aircraft data
+            updateAircraftData(acftDataMap);
+
+            // Push updates into labels and tracks
+            updatedAcftDatas.forEach(({ label, updated }) => {
+                try {
+                    label.updateData(updated);
+                    label.updateGraphics();
+                    const track = acftTracks.find(t => t.acftData.playerName === updated.playerName);
+                    if (track) track.updateData(updated);
+                } catch (e) { }
+            });
+
+            showToast(`Flight plans refreshed (${supabasePlans.length} fetched)`, 'success', 2500);
+        } catch (err) {
+            console.error('Failed to refresh flight plans', err);
+            showToast('Failed to refresh flight plans', 'error', 3000);
+        }
+    };
+
     // Resizing and moving
     ////////////////////////
     function positionGraphics() {

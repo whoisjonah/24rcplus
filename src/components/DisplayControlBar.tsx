@@ -230,6 +230,7 @@ function MainMenu() {
         <MapsSection />
 
         
+        <Button onClick={() => { (window as any).refreshAllFlightPlans?.(); }}>REFRESH FP</Button>
 
         <Button 
             pressed={config.hideGroundTraffic} 
