@@ -12,7 +12,7 @@ interface Fix {
 const fixesTextStyle: Partial<TextStyle> = {
     fontFamily: 'ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace',
     fontSize: 10,
-    fill: 0x4d9d4d,
+    fill: 0x9e9e9e,
     align: "center",
 };
 
@@ -105,14 +105,40 @@ export default class FixesLayer {
             const screenX = (gameX / 100 - this.basemap.pivot.x) * this.basemap.scale.x + this.basemap.position.x;
             const screenY = (gameY / 100 - this.basemap.pivot.y) * this.basemap.scale.y + this.basemap.position.y;
 
-            // Draw fix marker (small triangle)
-            const triangle = new Graphics();
-            triangle.moveTo(screenX, screenY - 4);
-            triangle.lineTo(screenX - 4, screenY + 4);
-            triangle.lineTo(screenX + 4, screenY + 4);
-            triangle.closePath();
-            triangle.fill({ color: 0x4d9d4d });
-            this.container.addChild(triangle);
+            // Draw fix marker / icon depending on fix type
+            const type = (fix.type || '').toString().toLowerCase();
+            const FIX_COLOR = 0x9e9e9e;
+
+            if (type.includes('vor') || type.includes('vordme') || type.includes('vortac')) {
+                // Draw VOR/VOR-DME/TAC: circle with center dot
+                const r = 6;
+                const cir = new Graphics();
+                cir.lineStyle(1, FIX_COLOR);
+                cir.drawCircle(screenX, screenY, r);
+                // center dot
+                cir.beginFill(FIX_COLOR);
+                cir.drawCircle(screenX, screenY, 2);
+                cir.endFill();
+                this.container.addChild(cir);
+            } else if (type.includes('ndb')) {
+                // NDB: small square
+                const s = 6;
+                const sq = new Graphics();
+                sq.beginFill(FIX_COLOR);
+                sq.drawRect(screenX - s/2, screenY - s/2, s, s);
+                sq.endFill();
+                this.container.addChild(sq);
+            } else {
+                // Default waypoint: small filled triangle
+                const triangle = new Graphics();
+                triangle.moveTo(screenX, screenY - 4);
+                triangle.lineTo(screenX - 4, screenY + 4);
+                triangle.lineTo(screenX + 4, screenY + 4);
+                triangle.closePath();
+                triangle.beginFill(FIX_COLOR);
+                triangle.endFill();
+                this.container.addChild(triangle);
+            }
 
             // Add fix name label
             const label = new Text({
