@@ -523,29 +523,22 @@ body {
 }
 
 .assume-btn {
-    background: #00ff00;
-    border: 2px solid #00ff00;
-    color: #000;
-    padding: 8px 16px;
-    font-size: 12px;
-    font-weight: bold;
+    background: #222;
+    border: none;
+    color: #fff;
+    padding: 2px 6px;
+    font-size: 9pt;
+    font-weight: 500;
     border-radius: 4px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.12s, transform 0.08s;
     font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    text-transform: none;
+    letter-spacing: 0.2px;
 }
 
 .assume-btn:hover {
-    background: #ffff00;
-    border-color: #ffff00;
-    box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
-    transform: scale(1.05);
-}
-
-.assume-btn:active {
-    transform: scale(0.98);
+    background: #2a2a2a;
 }
 
 /* Context Menu */
@@ -560,9 +553,9 @@ body {
 
 .context-menu {
     background: #1a1a1a;
-    border: 2px solid #00ff00;
+    border: 1px solid #333;
     border-radius: 4px;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
     min-width: 120px;
     z-index: 10001;
 }
@@ -570,26 +563,26 @@ body {
 .context-menu-item {
     display: block;
     width: 100%;
-    padding: 10px 16px;
+    padding: 6px 10px;
     background: none;
     border: none;
-    color: #00ff00;
+    color: #fff;
     font-size: 12px;
-    font-weight: bold;
+    font-weight: 500;
     font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Liberation Mono", Menlo, Monaco, Consolas, monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    text-transform: none;
+    letter-spacing: 0.2px;
     cursor: pointer;
     text-align: left;
-    transition: all 0.2s;
+    transition: background 0.12s, padding-left 0.12s;
 }
 
 .context-menu-item:hover {
-    background: rgba(0, 255, 0, 0.1);
-    color: #ffff00;
-    padding-left: 20px;
+    background: rgba(255,255,255,0.02);
+    color: #fff;
+    padding-left: 12px;
 }
 
 .context-menu-item:active {
-    background: rgba(0, 255, 0, 0.2);
+    background: rgba(255,255,255,0.04);
 }
