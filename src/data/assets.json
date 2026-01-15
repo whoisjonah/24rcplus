@@ -332,6 +332,18 @@
                 "defaultStyle": { "color": 16776960, "pixelLine": true, "alpha": 0.4 }
             },
             {
+                "id": "EXT_TICKS_NE",
+                "name": "EXT_TICKS_NE",
+                "route": "/assets/maps/IRFD/EXT_TICKS_NE.svg",
+                "defaultStyle": { "color": 16776960, "pixelLine": true, "alpha": 0.4 }
+            },
+            {
+                "id": "EXT_TICKS_SW",
+                "name": "EXT_TICKS_SW",
+                "route": "/assets/maps/IRFD/EXT_TICKS_SW.svg",
+                "defaultStyle": { "color": 16776960, "pixelLine": true, "alpha": 0.4 }
+            },
+            {
                 "id": "GROUND",
                 "name": "GROUND",
                 "route": "/assets/maps/IRFD/GROUND.svg",
