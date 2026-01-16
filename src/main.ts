@@ -264,9 +264,8 @@ function checkAuthentication(callback: () => void) {
                     if (pnNorm) flightPlansByPlayer[pnNorm] = fp;
                     const rcNorm = normalizeCallsign(fp.realcallsign);
                     if (rcNorm) flightPlansByRealCallsign[rcNorm] = fp;
-                    if (fp.callsign && !flightPlanCallsigns[fp.robloxName]) {
-                        flightPlanCallsigns[fp.robloxName] = fp.callsign;
-                    }
+                    // Do not seed `flightPlanCallsigns` from Supabase here;
+                    // `flightPlanCallsigns` is reserved for manual overrides only.
                 }
             });
             
@@ -490,22 +489,17 @@ function checkAuthentication(callback: () => void) {
             const { fetchAllFlightPlans, convertSupabaseToFlightPlan } = await import('./supabaseClient');
             const supabasePlans = await fetchAllFlightPlans();
 
-            // Clear manual flight plan adjustments stored locally
+            // For a forced refresh we clear manual flight plan edits and
+            // callsign overrides so the newest Supabase flight plans fully
+            // replace the displayed callsign and flight plan fields.
             try {
                 Object.keys(manualFlightPlans).forEach(k => delete manualFlightPlans[k]);
                 localStorage.removeItem(MANUAL_FLIGHT_PLANS_KEY);
             } catch (e) { }
-
-            // Clear assigned FL / speed on labels
-            acftLabels.forEach(label => {
-                try {
-                    label.assignedFL = null;
-                    label.assignedSpeed = null;
-                    label.formatText();
-                    label.updateGraphics();
-                    if (label.scratchPad) label.scratchPad.updateText();
-                } catch (e) { }
-            });
+            try {
+                Object.keys(flightPlanCallsigns).forEach(k => delete flightPlanCallsigns[k]);
+                localStorage.removeItem(CALLSIGN_OVERRIDES_KEY);
+            } catch (e) { }
 
             // Reset in-memory flight plan maps and repopulate from Supabase
             Object.keys(flightPlans).forEach(k => delete flightPlans[k]);
@@ -520,7 +514,7 @@ function checkAuthentication(callback: () => void) {
                     if (pnNorm) flightPlansByPlayer[pnNorm] = fp;
                     const rcNorm = normalizeCallsign(fp.realcallsign);
                     if (rcNorm) flightPlansByRealCallsign[rcNorm] = fp;
-                    if (fp.callsign) flightPlanCallsigns[fp.robloxName] = fp.callsign;
+                    // Do not auto-populate `flightPlanCallsigns` here; manual overrides only.
                 }
             });
 
@@ -534,13 +528,13 @@ function checkAuthentication(callback: () => void) {
                     || (pnNorm && flightPlansByPlayer[pnNorm])
                     || flightPlans[acftData.playerName];
 
-                const manualCallsign = flightPlanCallsigns[acftData.playerName];
                 const planCallsign = plan?.callsign;
 
+                // Overwrite displayed flight-plan fields with newest Supabase values.
                 const updated = {
                     ...acftData,
-                    flightPlanCallsign: manualCallsign || planCallsign,
-                    flightPlanRoute: plan?.route && plan.route !== "N/A" ? plan.route : plan?.route,
+                    flightPlanCallsign: planCallsign || acftData.flightPlanCallsign,
+                    flightPlanRoute: plan?.route && plan.route !== "N/A" ? plan.route : undefined,
                     flightPlanOrigin: plan?.departing,
                     flightPlanDestination: plan?.arriving,
                     flightPlanRules: plan?.flightrules,
@@ -809,9 +803,7 @@ function checkAuthentication(callback: () => void) {
                 if (pnNorm) flightPlansByPlayer[pnNorm] = fp;
                 const rcNorm = normalizeCallsign(fp.realcallsign);
                 if (rcNorm) flightPlansByRealCallsign[rcNorm] = fp;
-                if (fp.callsign && !flightPlanCallsigns[fp.robloxName]) {
-                    flightPlanCallsigns[fp.robloxName] = fp.callsign;
-                }
+                // Do not auto-populate `flightPlanCallsigns` from incoming WS events.
             }
 
         }
